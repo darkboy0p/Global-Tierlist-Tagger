@@ -2,6 +2,7 @@ package com.gtltagger.detect;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.ScoreboardDisplaySlot;
 import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.text.Text;
 import com.gtltagger.gamemode.Gamemodes;
@@ -23,8 +24,6 @@ import com.gtltagger.gamemode.Gamemodes;
  */
 public final class KitDetector {
 
-    private static final int SIDEBAR_SLOT = 1; // vanilla protocol slot id for the sidebar
-
     private KitDetector() {
     }
 
@@ -45,7 +44,7 @@ public final class KitDetector {
 
     private static String detectFromSidebar(MinecraftClient client) {
         Scoreboard scoreboard = client.world.getScoreboard();
-        ScoreboardObjective objective = scoreboard.getObjectiveForSlot(SIDEBAR_SLOT);
+        ScoreboardObjective objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR);
         if (objective == null) {
             return null;
         }
