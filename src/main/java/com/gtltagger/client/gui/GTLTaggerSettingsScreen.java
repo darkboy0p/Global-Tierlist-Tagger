@@ -8,6 +8,7 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.text.Text;
 import com.gtltagger.config.LeftRightMode;
 import com.gtltagger.config.GTLTaggerConfig;
+import com.gtltagger.config.TierNameFormat;
 import com.gtltagger.gamemode.Gamemodes;
 
 import java.util.ArrayList;
@@ -51,6 +52,17 @@ public class GTLTaggerSettingsScreen extends Screen {
                 .checked(config.tierMode.right)
                 .callback((cb, checked) -> setRight(checked))
                 .build());
+        y += ROW_HEIGHT;
+
+        this.addDrawableChild(CyclingButtonWidget.<TierNameFormat>builder(format -> Text.literal(format.label))
+                .values(TierNameFormat.values())
+                .initially(config.tierNameFormat)
+                .build(centerX - WIDGET_WIDTH / 2, y, WIDGET_WIDTH, 20,
+                        Text.literal("Tier Text Format"),
+                        (button, value) -> {
+                            config.tierNameFormat = value;
+                            config.save();
+                        }));
         y += ROW_HEIGHT + 6;
 
         // --- Gamemodes ---
@@ -92,6 +104,17 @@ public class GTLTaggerSettingsScreen extends Screen {
                 .checked(config.tabTiersEnabled)
                 .callback((cb, checked) -> {
                     config.tabTiersEnabled = checked;
+                    config.save();
+                })
+                .build());
+        y += ROW_HEIGHT;
+
+        // --- Nametag ---
+        this.addDrawableChild(CheckboxWidget.builder(Text.literal("Show tiers in Nametag"), this.textRenderer)
+                .pos(centerX - WIDGET_WIDTH / 2, y)
+                .checked(config.nametagTiersEnabled)
+                .callback((cb, checked) -> {
+                    config.nametagTiersEnabled = checked;
                     config.save();
                 })
                 .build());

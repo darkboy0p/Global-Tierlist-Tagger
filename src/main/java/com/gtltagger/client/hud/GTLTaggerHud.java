@@ -8,6 +8,8 @@ import com.gtltagger.config.GTLTaggerConfig;
 import com.gtltagger.data.TierDatabase;
 import com.gtltagger.data.TierEntry;
 import com.gtltagger.detect.KitDetector;
+import com.gtltagger.tag.TierColors;
+import com.gtltagger.tag.TierText;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,9 @@ import java.util.List;
  * adds exactly one version-specific HudIconRenderer.java to the
  * compile classpath per matrix leg, so this class only ever sees one
  * implementation of drawIcon(...) at a time.
+ *
+ * Tier lines use the Short/Full text-format setting (config.tierNameFormat)
+ * and are colored per-tier via {@link TierColors}.
  */
 public final class GTLTaggerHud {
 
@@ -35,14 +40,19 @@ public final class GTLTaggerHud {
     private static final int ICON_SIZE = 9;
     private static final int ICON_TEXT_GAP = 2;
     private static final int ICON_SOURCE_PX = 256; // all kit icons ship as 256x256
+    private static final int DEFAULT_TEXT_COLOR = 0xFFFFFF;
 
     private GTLTaggerHud() {
     }
 
-    /** One HUD row: text plus the kit icon to draw before it, if any. */
-    public record HudLine(String text, Identifier icon) {
+    /** One HUD row: text, the kit icon to draw before it (if any), and a text color override (if any - defaults to white). */
+    public record HudLine(String text, Identifier icon, Integer color) {
         public HudLine(String text) {
-            this(text, null);
+            this(text, null, null);
+        }
+
+        public HudLine(String text, Identifier icon) {
+            this(text, icon, null);
         }
     }
 
@@ -66,8 +76,8 @@ public final class GTLTaggerHud {
         String ign = client.player.getGameProfile().getName();
 
         if (config.secondGamemodeEnabled) {
-            appendModeLine(lines, ign, config.gamemode1);
-            appendModeLine(lines, ign, config.gamemode2);
+            appendModeLine(lines, ign, config.gamemode1, config);
+            appendModeLine(lines, ign, config.gamemode2, config);
             return lines;
         }
 
@@ -79,17 +89,28 @@ public final class GTLTaggerHud {
 
         lines.add(new HudLine("GTLTagger"));
         lines.add(new HudLine("Kit: " + kit, KitIcons.get(kit)));
-        lines.add(new HudLine("Tier: " + (entry != null && entry.tier != null ? entry.tier : "?")));
+        lines.add(tierLine("Tier: ", entry != null ? entry.tier : null, config));
         if (entry != null && entry.peak != null) {
-            lines.add(new HudLine("Peak: " + entry.peak));
+            lines.add(tierLine("Peak: ", entry.peak, config));
         }
         return lines;
     }
 
-    private static void appendModeLine(List<HudLine> lines, String ign, String gamemode) {
+    private static void appendModeLine(List<HudLine> lines, String ign, String gamemode, GTLTaggerConfig config) {
         TierEntry entry = TierDatabase.get(ign, gamemode);
-        String tier = entry != null && entry.tier != null ? entry.tier : "?";
-        lines.add(new HudLine(gamemode + ": " + tier, KitIcons.get(gamemode)));
+        String tier = entry != null ? entry.tier : null;
+        String text = gamemode + ": " + (tier != null ? TierText.render(tier, config.tierNameFormat) : "?");
+        Integer color = tier != null ? TierColors.rgbForTierNumber(TierText.tierNumber(tier)) : null;
+        lines.add(new HudLine(text, KitIcons.get(gamemode), color));
+    }
+
+    /** A "Tier: ..." / "Peak: ..." row: "?" and no color for an untested tier, else the formatted+colored tier. */
+    private static HudLine tierLine(String label, String tier, GTLTaggerConfig config) {
+        if (tier == null) {
+            return new HudLine(label + "?");
+        }
+        return new HudLine(label + TierText.render(tier, config.tierNameFormat), null,
+                TierColors.rgbForTierNumber(TierText.tierNumber(tier)));
     }
 
     public static void renderBox(DrawContext drawContext, MinecraftClient client, List<HudLine> lines, int x, int y) {
@@ -120,7 +141,7 @@ public final class GTLTaggerHud {
                     line.text(),
                     textX,
                     rowY + 1,
-                    0xFFFFFF,
+                    line.color() != null ? line.color() : DEFAULT_TEXT_COLOR,
                     true
             );
         }

@@ -1,36 +1,43 @@
 package com.gtltagger.tag;
 
 import com.gtltagger.config.LeftRightMode;
+import com.gtltagger.gamemode.Gamemodes;
 
 /**
  * Builds the literal TierTag string:
  *
- *   [:icon:TIER]IGN[:icon:TIER]
+ *   [:kiticon:TIER]IGN[:kiticon:TIER]
  *
  * with either side toggled off per {@link LeftRightMode}. This is
- * plain text meant to be typed/pasted into chat — "icon" here is a
- * literal token (matching servers that resolve [:icon:XXX] via a
- * resource-pack font/emoji system), not an image rendered by this mod.
+ * plain text meant to be typed/pasted into chat - "kiticon" (see
+ * Gamemodes.iconToken) is a literal per-kit token (matching servers
+ * that resolve [:nethpoticon:LT5]-shaped segments via a resource-pack
+ * font/emoji system keyed per kit), not an image rendered by this mod.
  */
 public final class TierTagGenerator {
 
     private TierTagGenerator() {
     }
 
-    /** @param tier the tier code to embed, e.g. "LT3" — required if either side is shown. */
-    public static String generate(String ign, String tier, LeftRightMode mode) {
+    /**
+     * @param gamemode the kit this tier is for, used to pick the icon token (see {@link Gamemodes#iconToken}).
+     * @param tier     the tier code to embed, e.g. "LT3" - required if either side is shown.
+     */
+    public static String generate(String ign, String gamemode, String tier, LeftRightMode mode) {
         if (tier == null) {
             // No tested tier for this gamemode: no icon to show on either side.
             return ign;
         }
 
+        String token = "[:" + Gamemodes.iconToken(gamemode) + ":" + tier + "]";
+
         StringBuilder sb = new StringBuilder();
         if (mode.left) {
-            sb.append("[:icon:").append(tier).append(']');
+            sb.append(token);
         }
         sb.append(ign);
         if (mode.right) {
-            sb.append("[:icon:").append(tier).append(']');
+            sb.append(token);
         }
         return sb.toString();
     }

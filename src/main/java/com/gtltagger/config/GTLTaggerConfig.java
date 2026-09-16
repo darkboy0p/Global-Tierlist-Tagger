@@ -26,6 +26,9 @@ public class GTLTaggerConfig {
     // --- Tier display (section 4) ---
     public LeftRightMode tierMode = LeftRightMode.BOTH;
 
+    /** Short ("LT5") vs full ("Low Tier 5") tier text - applies to the HUD and nametag; TAB always uses the short form. */
+    public TierNameFormat tierNameFormat = TierNameFormat.SHORT;
+
     // --- Gamemodes (section 2 / 8) ---
     public String gamemode1 = "NethPot";
     public String gamemode2 = "Crystal";
@@ -33,6 +36,9 @@ public class GTLTaggerConfig {
 
     // --- TAB (section 5 / 8) ---
     public boolean tabTiersEnabled = true;
+
+    // --- In-world nametag ---
+    public boolean nametagTiersEnabled = true;
 
     // --- Automatic kit detection (section 6 / 8) ---
     public boolean automaticDetectionEnabled = true;

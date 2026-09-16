@@ -65,4 +65,18 @@ public final class Gamemodes {
     public static boolean isKnown(String gamemode) {
         return ORDER.contains(gamemode);
     }
+
+    /**
+     * Literal chat-text icon token for this kit, matching a resource
+     * pack's per-kit font glyph key - e.g. "NethPot" -&gt; "nethpoticon",
+     * used to build "[:nethpoticon:LT5]"-shaped segments (see
+     * com.gtltagger.tag.TierTagGenerator and the TAB/nametag mixins).
+     * Falls back to the generic "icon" for an unknown/null kit.
+     */
+    public static String iconToken(String kit) {
+        if (kit == null || !isKnown(kit)) {
+            return "icon";
+        }
+        return kit.toLowerCase(java.util.Locale.ROOT) + "icon";
+    }
 }

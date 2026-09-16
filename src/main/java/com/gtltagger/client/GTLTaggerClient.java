@@ -157,7 +157,7 @@ public class GTLTaggerClient implements ClientModInitializer {
         }
 
         TierEntry entry = TierDatabase.get(ign, gamemode);
-        String tag = TierTagGenerator.generate(ign, entry != null ? entry.tier : null, config.tierMode);
+        String tag = TierTagGenerator.generate(ign, gamemode, entry != null ? entry.tier : null, config.tierMode);
 
         client.keyboard.setClipboard(tag);
         feedback(client, "Copied: " + tag);
