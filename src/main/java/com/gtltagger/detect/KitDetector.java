@@ -23,7 +23,7 @@ import com.gtltagger.gamemode.Gamemodes;
  */
 public final class KitDetector {
 
-    private static final int SIDEBAR_SLOT = 1; // vanilla protocol slot id for the sidebar, MC 1.20.1
+    private static final int SIDEBAR_SLOT = 1; // vanilla protocol slot id for the sidebar
 
     private KitDetector() {
     }
@@ -56,8 +56,10 @@ public final class KitDetector {
         if (client.getNetworkHandler() == null) {
             return null;
         }
-        Text header = client.getNetworkHandler().getPlayerListHeader();
-        Text footer = client.getNetworkHandler().getPlayerListFooter();
+        // ClientPlayNetworkHandler no longer exposes getters for these —
+        // TabTextHolder is kept up to date by ClientPlayNetworkHandlerMixin.
+        Text header = TabTextHolder.getHeader();
+        Text footer = TabTextHolder.getFooter();
         String fromHeader = header != null ? findKnownGamemode(header) : null;
         if (fromHeader != null) {
             return fromHeader;
