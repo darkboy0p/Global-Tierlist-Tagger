@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "gtltagger",
+  "version": "${version}",
+  "name": "GTLTagger",
+  "description": "Generates [:icon:TIER]IGN[:icon:TIER] chat tags for Minecraft PvP tier lists, with TAB display, kit detection, and an in-game HUD.",
+  "authors": ["You"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.gtltagger.client.GTLTaggerClient"
+    ]
+  },
+  "mixins": [
+    "gtltagger.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.7",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "fabric-api": "*"
+  }
+}
