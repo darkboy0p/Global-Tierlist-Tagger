@@ -11,14 +11,14 @@ import java.util.Map;
  * Maps each kit name (and "Overall") to the icon texture shipped at
  * assets/gtltagger/textures/icon/&lt;name&gt;.png.
  *
- * NOTE: this class only holds Identifier references — it does not draw
- * anything. Actually rendering these on-screen (in the HUD or the TAB
- * list) needs DrawContext.drawTexture(...), whose method signature has
- * changed twice within the 1.21.1–1.21.7 range this mod targets (plain
- * Identifier in 1.21.1, Function&lt;Identifier,RenderLayer&gt; from 1.21.2,
- * RenderPipeline from 1.21.6) — code compiled for one of those won't
- * run on a client using another, so wiring this up needs a decision on
- * which version(s) to support before it's added to the HUD/TAB mixin.
+ * These textures are drawn on-screen by {@link com.gtltagger.client.hud.GTLTaggerHud}
+ * (the HUD's kit lines) using the 1.21.6+ DrawContext.drawTexture(RenderPipelines, ...)
+ * signature. That method's shape changed twice within the 1.21.1-1.21.7
+ * range this repo's CI matrix builds against (plain Identifier in
+ * 1.21.1, Function&lt;Identifier,RenderLayer&gt; from 1.21.2, RenderPipeline
+ * from 1.21.6) — so the HUD's icon-drawing code only compiles clean for
+ * 1.21.6+; older matrix legs need an equivalent call using their own
+ * mapped signature before icons will build there too.
  */
 public final class KitIcons {
 

@@ -44,9 +44,12 @@ public class HudPositionScreen extends Screen {
                 this.width / 2, 20, 0xFFFFFF
         );
 
-        List<String> lines = GTLTaggerHud.buildLines(this.client, config);
+        List<GTLTaggerHud.HudLine> lines = GTLTaggerHud.buildLines(this.client, config);
         if (lines.isEmpty()) {
-            lines = List.of("GTLTagger", "Kit: NethPot", "Tier: ?");
+            lines = List.of(
+                    new GTLTaggerHud.HudLine("GTLTagger"),
+                    new GTLTaggerHud.HudLine("Kit: NethPot"),
+                    new GTLTaggerHud.HudLine("Tier: ?"));
         }
         GTLTaggerHud.renderBox(drawContext, this.client, lines, config.hudX, config.hudY);
     }
