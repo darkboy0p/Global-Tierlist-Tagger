@@ -1,8 +1,18 @@
 name: Build
 
 # Builds the mod in GitHub's cloud runners, so you never have to run
-# Gradle/Loom locally. Grab the finished jar from the workflow run's
-# "Artifacts" section, or from Releases when you push a v* tag.
+# Gradle/Loom locally. One job runs per supported Minecraft patch
+# (1.21.1 through 1.21.7, per fabric.mod.json's declared range). Grab
+# the finished jars from the workflow run's "Artifacts" section (one
+# per Minecraft version), or from Releases when you push a v* tag.
+#
+# IMPORTANT: only 1.21.7 has actually been built/verified against this
+# codebase. Several mixin targets and client-API calls (see
+# KitIcons.java's note on DrawContext.drawTexture, for example) are
+# known to change signature within the 1.21.1-1.21.7 range itself, so
+# some of these matrix legs may fail to compile even though the
+# version is in fabric.mod.json's declared range. Treat red jobs here
+# as "this patch needs code changes", not as a workflow bug.
 on:
   push:
     branches: [ "main" ]
@@ -12,6 +22,17 @@ on:
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        minecraft_version:
+          - "1.21.1"
+          - "1.21.2"
+          - "1.21.3"
+          - "1.21.4"
+          - "1.21.5"
+          - "1.21.6"
+          - "1.21.7"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,13 +50,55 @@ jobs:
           gradle-version: 8.8
           cache-read-only: false
 
+      - name: Resolve Fabric versions for ${{ matrix.minecraft_version }}
+        id: fabric
+        run: |
+          set -euo pipefail
+          MC="${{ matrix.minecraft_version }}"
+
+          YARN=$(curl -sf "https://meta.fabricmc.net/v2/versions/yarn/${MC}" | jq -r '.[0].version // empty')
+          if [ -z "$YARN" ]; then
+            echo "::error::No Yarn mappings found for Minecraft ${MC}"
+            exit 1
+          fi
+
+          LOADER=$(curl -sf "https://meta.fabricmc.net/v2/versions/loader/${MC}" | jq -r '.[0].loader.version // empty')
+          if [ -z "$LOADER" ]; then
+            echo "::error::No Fabric Loader build found for Minecraft ${MC}"
+            exit 1
+          fi
+
+          FABRIC_API=$(curl -sf "https://api.modrinth.com/v2/project/fabric-api/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%22${MC}%22%5D" \
+            | jq -r '[.[] | select(.version_type=="release")] as $r | (if ($r|length) > 0 then $r[0] else .[0] end).version_number // empty')
+          if [ -z "$FABRIC_API" ]; then
+            echo "::error::No Fabric API release found for Minecraft ${MC}"
+            exit 1
+          fi
+
+          echo "Resolved for $MC -> yarn=$YARN loader=$LOADER fabric-api=$FABRIC_API"
+          echo "yarn=$YARN" >> "$GITHUB_OUTPUT"
+          echo "loader=$LOADER" >> "$GITHUB_OUTPUT"
+          echo "fabric_api=$FABRIC_API" >> "$GITHUB_OUTPUT"
+
       - name: Build
-        run: gradle build --no-daemon --stacktrace
+        run: >
+          gradle build --no-daemon --stacktrace
+          -Pminecraft_version=${{ matrix.minecraft_version }}
+          -Pyarn_mappings=${{ steps.fabric.outputs.yarn }}
+          -Ploader_version=${{ steps.fabric.outputs.loader }}
+          -Pfabric_version=${{ steps.fabric.outputs.fabric_api }}
+
+      - name: Tag jar filenames with Minecraft version
+        run: |
+          set -euo pipefail
+          for f in build/libs/*.jar; do
+            mv "$f" "${f%.jar}-mc${{ matrix.minecraft_version }}.jar"
+          done
 
       - name: Upload built jar
         uses: actions/upload-artifact@v4
         with:
-          name: GTLTagger
+          name: GTLTagger-mc${{ matrix.minecraft_version }}
           path: build/libs/*.jar
           if-no-files-found: error
 
@@ -47,11 +110,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download built jar
+      - name: Download built jars
         uses: actions/download-artifact@v4
         with:
-          name: GTLTagger
+          pattern: GTLTagger-mc*
           path: dist
+          merge-multiple: true
 
       - name: Create release
         uses: softprops/action-gh-release@v2
