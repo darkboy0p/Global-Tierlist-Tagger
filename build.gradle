@@ -14,6 +14,43 @@ repositories {
     // Add your own repositories here if needed
 }
 
+// The HUD's icon-drawing code (GTLTaggerHud/KitIcons) calls
+// DrawContext.drawTexture(...), whose argument shape changed twice
+// within the 1.21.1-1.21.7 range this repo's CI matrix builds
+// against. Rather than picking one signature and breaking the other
+// legs, the actual call lives in HudIconRenderer.java, with one
+// version-specific copy per bucket under a sibling src/main/java_*
+// directory. Here we add exactly one of those directories to the
+// main source set, based on which Minecraft version this build leg
+// is compiling against - see each HudIconRenderer.java for the
+// specifics of its bucket.
+def mcVersionParts = project.minecraft_version.tokenize('.').collect { it.toInteger() }
+while (mcVersionParts.size() < 3) {
+    mcVersionParts << 0
+}
+def (mcMajor, mcMinor, mcPatch) = mcVersionParts
+
+def hudIconRendererVariant
+if (mcMajor == 1 && mcMinor == 21 && mcPatch <= 1) {
+    hudIconRendererVariant = 'java_1_21_1'
+} else if (mcMajor == 1 && mcMinor == 21 && mcPatch >= 2 && mcPatch <= 5) {
+    hudIconRendererVariant = 'java_1_21_2_to_5'
+} else {
+    // 1.21.6, 1.21.7, and anything newer/outside the declared range -
+    // assumed to keep the RenderPipeline shape until proven otherwise.
+    hudIconRendererVariant = 'java_1_21_6_plus'
+}
+
+logger.lifecycle("GTLTagger: using HudIconRenderer variant '${hudIconRendererVariant}' for Minecraft ${project.minecraft_version}")
+
+sourceSets {
+    main {
+        java {
+            srcDir "src/main/${hudIconRendererVariant}"
+        }
+    }
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"

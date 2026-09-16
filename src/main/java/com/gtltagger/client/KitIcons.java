@@ -12,13 +12,13 @@ import java.util.Map;
  * assets/gtltagger/textures/icon/&lt;name&gt;.png.
  *
  * These textures are drawn on-screen by {@link com.gtltagger.client.hud.GTLTaggerHud}
- * (the HUD's kit lines) using the 1.21.6+ DrawContext.drawTexture(RenderPipelines, ...)
- * signature. That method's shape changed twice within the 1.21.1-1.21.7
- * range this repo's CI matrix builds against (plain Identifier in
- * 1.21.1, Function&lt;Identifier,RenderLayer&gt; from 1.21.2, RenderPipeline
- * from 1.21.6) — so the HUD's icon-drawing code only compiles clean for
- * 1.21.6+; older matrix legs need an equivalent call using their own
- * mapped signature before icons will build there too.
+ * (the HUD's kit lines) via {@code DrawContext.drawTexture(...)}. That
+ * method's shape changed twice within the 1.21.1-1.21.7 range this
+ * repo's CI matrix builds against (plain Identifier in 1.21/1.21.1,
+ * Function&lt;Identifier,RenderLayer&gt; from 1.21.2, RenderPipeline from
+ * 1.21.6) — see {@code com.gtltagger.client.hud.HudIconRenderer}, which
+ * has one implementation per bucket in a sibling src/main/java_* dir,
+ * with build.gradle adding the right one to the classpath per matrix leg.
  */
 public final class KitIcons {
 

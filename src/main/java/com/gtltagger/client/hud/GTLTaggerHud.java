@@ -1,7 +1,6 @@
 package com.gtltagger.client.hud;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 import com.gtltagger.client.KitIcons;
@@ -19,14 +18,14 @@ import java.util.List;
  * {@link com.gtltagger.client.gui.HudPositionScreen}.
  *
  * Gamemode lines are drawn with the real kit icon texture (from
- * assets/gtltagger/textures/icon/) rather than as plain text. This
- * uses the 1.21.6+ drawTexture(RenderPipelines.GUI_TEXTURED, ...)
- * signature - that method's shape changed twice within the
- * 1.21.1-1.21.7 range this repo's CI builds against (see
- * KitIcons.java), so this file only compiles clean for Minecraft
- * versions that share 1.21.7's signature (1.21.6-1.21.7 as of this
- * writing); older matrix legs will need their own drawTexture call
- * for their mapped signature.
+ * assets/gtltagger/textures/icon/) rather than as plain text. The
+ * actual drawTexture(...) call lives in {@link HudIconRenderer}
+ * instead of here, because that method's argument shape changed twice
+ * within the 1.21.1-1.21.7 range this repo's CI matrix builds against
+ * (see HudIconRenderer's own javadoc, and KitIcons.java). build.gradle
+ * adds exactly one version-specific HudIconRenderer.java to the
+ * compile classpath per matrix leg, so this class only ever sees one
+ * implementation of drawIcon(...) at a time.
  */
 public final class GTLTaggerHud {
 
@@ -112,15 +111,7 @@ public final class GTLTaggerHud {
 
             if (line.icon() != null) {
                 int iconY = rowY + (LINE_HEIGHT - ICON_SIZE) / 2;
-                drawContext.drawTexture(
-                        RenderPipelines.GUI_TEXTURED,
-                        line.icon(),
-                        textX, iconY,
-                        0, 0,
-                        ICON_SIZE, ICON_SIZE,
-                        ICON_SOURCE_PX, ICON_SOURCE_PX,
-                        ICON_SOURCE_PX, ICON_SOURCE_PX
-                );
+                HudIconRenderer.drawIcon(drawContext, line.icon(), textX, iconY, ICON_SIZE, ICON_SOURCE_PX);
                 textX += ICON_SIZE + ICON_TEXT_GAP;
             }
 
