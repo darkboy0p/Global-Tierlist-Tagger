@@ -1,0 +1,60 @@
+name: Build
+
+# Builds the mod in GitHub's cloud runners, so you never have to run
+# Gradle/Loom locally. Grab the finished jar from the workflow run's
+# "Artifacts" section, or from Releases when you push a v* tag.
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  pull_request:
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.8
+          cache-read-only: false
+
+      - name: Build
+        run: gradle build --no-daemon --stacktrace
+
+      - name: Upload built jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: GTLTagger
+          path: build/libs/*.jar
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download built jar
+        uses: actions/download-artifact@v4
+        with:
+          name: GTLTagger
+          path: dist
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.jar
+          generate_release_notes: true
