@@ -94,6 +94,6 @@ public abstract class PlayerEntityMixin {
         String tier = resolution.entry().tier;
         String token = Gamemodes.iconToken(resolution.gamemode());
         String text = "[:" + token + ":" + TierText.render(tier, config.tierNameFormat) + "]";
-        return Text.literal(text).setStyle(Style.empty().withColor(TierColors.forCode(tier)));
+        return Text.literal(text).setStyle(Style.EMPTY.withColor(TierColors.forCode(tier)));
     }
 }

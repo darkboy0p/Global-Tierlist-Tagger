@@ -78,6 +78,6 @@ public abstract class PlayerListHudMixin {
         String tier = resolution.entry().tier;
         String token = Gamemodes.iconToken(resolution.gamemode());
         String text = "[:" + token + ":" + TierText.shortForm(tier) + "]";
-        return Text.literal(text).setStyle(Style.empty().withColor(TierColors.forCode(tier)));
+        return Text.literal(text).setStyle(Style.EMPTY.withColor(TierColors.forCode(tier)));
     }
 }
