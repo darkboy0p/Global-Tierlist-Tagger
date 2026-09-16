@@ -133,8 +133,11 @@ public class GTLTaggerClient implements ClientModInitializer {
                             return 1;
                         }))
                         .then(ClientCommandManager.literal("reload").executes(ctx -> {
-                            TierDatabase.load();
-                            ctx.getSource().sendFeedback(Text.literal("GTLTagger: reloaded players.json"));
+                            feedback(MinecraftClient.getInstance(), "Refreshing tier data from GlobalTierlist...");
+                            TierDatabase.reload(success -> MinecraftClient.getInstance().execute(() ->
+                                    feedback(MinecraftClient.getInstance(), success
+                                            ? "Tier data refreshed"
+                                            : "Refresh failed, see log (kept previous data)")));
                             return 1;
                         }))
                         .then(ClientCommandManager.literal("tag").executes(ctx -> {

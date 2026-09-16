@@ -1,79 +1,86 @@
 package com.gtltagger.data;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import net.fabricmc.loader.api.FabricLoader;
 import com.gtltagger.GTLTaggerMod;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
- * Local tier database, read from <config>/gtltagger/players.json:
+ * In-memory tier database, populated entirely from the GlobalTierlist
+ * API (https://globaltierlist-api.vercel.app/api/players) - this mod
+ * no longer reads a local config/gtltagger/players.json file.
  *
- * {
- *   "PlayerName": {
- *     "NethPot": { "tier": "LT3", "peak": "HT3" },
- *     "Crystal": { "tier": "HT2" }
- *   }
- * }
- *
- * This mod does not assume any particular tier-list backend/API —
- * populate this file however fits your server (export script, a
- * companion plugin writing to it, or by hand). IGN lookups are
- * case-insensitive. Reload in-game with "/gtltagger reload".
+ * A background refresh is kicked off immediately on {@link #load()}
+ * and repeats every {@link #REFRESH_INTERVAL_MINUTES} minutes. If a
+ * refresh fails (offline, API down, bad response), the previous
+ * successful snapshot is kept rather than cleared, so a transient
+ * outage doesn't blank out tier lookups mid-session - check the log
+ * for warnings if data looks stale.
  */
 public class TierDatabase {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Path PATH = FabricLoader.getInstance().getConfigDir()
-            .resolve("gtltagger").resolve("players.json");
+    private static final long REFRESH_INTERVAL_MINUTES = 5;
 
-    private static Map<String, Map<String, TierEntry>> data = new HashMap<>();
+    private static final ScheduledExecutorService EXECUTOR =
+            Executors.newSingleThreadScheduledExecutor(daemonThreadFactory());
+
+    private static volatile Map<String, Map<String, TierEntry>> data = new HashMap<>();
+    private static final AtomicBoolean scheduled = new AtomicBoolean(false);
 
     private TierDatabase() {
     }
 
+    /**
+     * Triggers an immediate refresh from the API and, the first time
+     * this is called, schedules the periodic background refresh.
+     * Safe to call repeatedly (e.g. from "/gtltagger reload") - it
+     * never blocks the calling thread.
+     */
     public static void load() {
-        try {
-            if (!Files.exists(PATH)) {
-                writeExample();
-            }
-            try (Reader reader = Files.newBufferedReader(PATH, StandardCharsets.UTF_8)) {
-                Type type = new TypeToken<Map<String, Map<String, TierEntry>>>() {}.getType();
-                Map<String, Map<String, TierEntry>> loaded = GSON.fromJson(reader, type);
-                Map<String, Map<String, TierEntry>> normalized = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-                if (loaded != null) {
-                    normalized.putAll(loaded);
-                }
-                data = normalized;
-                GTLTaggerMod.LOGGER.info("GTLTagger: loaded tier data for {} player(s)", data.size());
-            }
-        } catch (IOException | RuntimeException e) {
-            GTLTaggerMod.LOGGER.warn("Failed to load players.json, tier lookups will be empty", e);
-            data = new HashMap<>();
+        if (scheduled.compareAndSet(false, true)) {
+            EXECUTOR.scheduleWithFixedDelay(
+                    TierDatabase::refreshOnce, 0, REFRESH_INTERVAL_MINUTES, TimeUnit.MINUTES);
+        } else {
+            EXECUTOR.execute(TierDatabase::refreshOnce);
         }
     }
 
-    private static void writeExample() throws IOException {
-        Files.createDirectories(PATH.getParent());
-        Map<String, Map<String, TierEntry>> example = new HashMap<>();
-        Map<String, TierEntry> exampleModes = new HashMap<>();
-        exampleModes.put("NethPot", new TierEntry("LT3", "HT3"));
-        exampleModes.put("Crystal", new TierEntry("HT2", null));
-        example.put("ExamplePlayer", exampleModes);
-        try (Writer writer = Files.newBufferedWriter(PATH, StandardCharsets.UTF_8)) {
-            GSON.toJson(example, writer);
+    /**
+     * Like {@link #load()}, but runs {@code onDone} (with whether the
+     * refresh succeeded) once it completes. {@code onDone} is called
+     * from the background thread - hop back to the client thread
+     * yourself if you touch client state from it.
+     */
+    public static void reload(Consumer<Boolean> onDone) {
+        EXECUTOR.execute(() -> onDone.accept(refreshOnce()));
+    }
+
+    private static boolean refreshOnce() {
+        try {
+            Map<String, Map<String, TierEntry>> fetched = GlobalTierlistApi.fetchAll();
+            data = fetched;
+            GTLTaggerMod.LOGGER.info("GTLTagger: refreshed tier data for {} player(s) from GlobalTierlist API",
+                    fetched.size());
+            return true;
+        } catch (Exception e) {
+            GTLTaggerMod.LOGGER.warn("GTLTagger: failed to refresh tier data from GlobalTierlist API, "
+                    + "keeping previous data", e);
+            return false;
         }
+    }
+
+    private static ThreadFactory daemonThreadFactory() {
+        return runnable -> {
+            Thread thread = new Thread(runnable, "gtltagger-tier-refresh");
+            thread.setDaemon(true);
+            return thread;
+        };
     }
 
     /** Returns the entry for {@code ign} + {@code gamemode}, or null if untested. */

@@ -38,38 +38,42 @@ assumes, and where to change it if you meant something else:
 
 ## Tier data
 
-This mod doesn't assume any particular tier-list backend/API. Player
-tier data lives in a local file you populate however fits your setup
-(export script, a companion server plugin, or by hand):
+Player tier data comes from the [GlobalTierlist
+API](https://globaltierlist-api.vercel.app) (`GET /api/players`) —
+there is no local `players.json` file anymore. On launch, and every 5
+minutes after that, the mod fetches the full player list in the
+background and caches it in memory; `/gtltagger reload` triggers an
+immediate refresh without restarting. If a refresh fails (offline,
+API down), the previous successful data is kept rather than cleared —
+check the log for a warning if tiers look stale.
 
-```
-<minecraft>/config/gtltagger/players.json
-```
-
-```json
-{
-  "SomePlayer": {
-    "NethPot": { "tier": "LT3", "peak": "HT3" },
-    "Crystal": { "tier": "HT2" }
-  }
-}
-```
-
-An example file is auto-created on first launch if none exists.
-Reload it in-game without restarting via `/gtltagger reload`.
+The API's gamemode names are mapped to this mod's names in
+`Gamemodes.TO_API_NAME` / `FROM_API_NAME` (its `Diapot` is this mod's
+`Pot`; everything else only differs in casing) — edit that mapping if
+the API adds or renames a gamemode.
 
 ## Building — no local build needed
 
 A GitHub Actions workflow (`.github/workflows/build.yml`) builds the
 mod jar in the cloud on every push, so a low-end PC never has to run
-Gradle/Loom locally:
+Gradle/Loom locally. It runs one job per supported Minecraft patch
+(1.21.1 through 1.21.7 — fabric.mod.json's declared range), resolving
+the matching Yarn mappings, Fabric Loader, and Fabric API versions for
+each patch automatically:
 
 1. Push this project to a GitHub repo.
-2. Open the **Actions** tab — the "Build" workflow runs automatically.
-3. Once it finishes, open the run and download the **GTLTagger**
-   artifact (the built jar) from the bottom of the page.
-4. Pushing a tag like `v1.0.0` also publishes the jar as a GitHub
-   Release automatically.
+2. Open the **Actions** tab — the "Build" workflow runs automatically,
+   as one job per Minecraft version.
+3. Once it finishes, open the run and download the **GTLTagger-mc\***
+   artifact for whichever Minecraft version you want (one per job) from
+   the bottom of the page.
+4. Pushing a tag like `v1.0.0` also publishes every version's jar as a
+   single GitHub Release automatically.
+
+Only 1.21.7 has actually been built/verified against this codebase —
+see the note at the top of `build.yml`. A patch version's job going
+red means that patch's client APIs shifted under the mixins/code here
+and need a fix, not that the workflow itself is broken.
 
 Note: this project does **not** bundle the Gradle wrapper jar (a
 binary file), so `./gradlew` won't work until you generate it once —
