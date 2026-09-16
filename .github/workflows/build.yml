@@ -45,9 +45,12 @@ jobs:
           java-version: 21
 
       - name: Set up Gradle
+        # 8.8 isn't enough anymore: build.gradle pins fabric-loom to the
+        # floating "1.10-SNAPSHOT", which now resolves to a build that
+        # requires Gradle >=8.12. Bumped to a current 8.x stable release.
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.8
+          gradle-version: 8.14.5
           cache-read-only: false
 
       - name: Resolve Fabric versions for ${{ matrix.minecraft_version }}
