@@ -2,63 +2,63 @@
   "providers": [
     {
       "type": "bitmap",
-      "file": "gtltagger:icon/neth_pot.png",
+      "file": "gtltagger:icon/neth_pot.webp",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE000"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:icon/pot.png",
+      "file": "gtltagger:icon/pot.webp",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE001"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:icon/crystal.png",
+      "file": "gtltagger:icon/crystal.webp",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE002"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:icon/sword.png",
+      "file": "gtltagger:icon/sword.webp",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE003"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:icon/uhc.png",
+      "file": "gtltagger:icon/uhc.webp",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE004"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:icon/axe.png",
+      "file": "gtltagger:icon/axe.webp",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE005"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:icon/smp.png",
+      "file": "gtltagger:icon/smp.webp",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE006"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:icon/mace.png",
+      "file": "gtltagger:icon/mace.webp",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE007"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:icon/overall.png",
+      "file": "gtltagger:icon/overall.webp",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE008"]
