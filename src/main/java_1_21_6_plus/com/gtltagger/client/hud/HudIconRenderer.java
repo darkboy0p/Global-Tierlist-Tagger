@@ -21,12 +21,12 @@ import net.minecraft.util.Identifier;
  * 1.21.1-1.21.7 range, on the assumption that newer versions keep this
  * shape rather than reverting to an older one.
  */
-final class HudIconRenderer {
+public final class HudIconRenderer {
 
     private HudIconRenderer() {
     }
 
-    static void drawIcon(DrawContext context, Identifier texture, int x, int y, int size, int sourcePx) {
+    public static void drawIcon(DrawContext context, Identifier texture, int x, int y, int size, int sourcePx) {
         context.drawTexture(RenderPipelines.GUI_TEXTURED, texture, x, y, 0, 0, size, size, sourcePx, sourcePx, sourcePx, sourcePx);
     }
 }

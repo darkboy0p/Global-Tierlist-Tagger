@@ -17,12 +17,12 @@ import net.minecraft.util.Identifier;
  * 1.21.2-1.21.5 and 1.21.6+ variants live alongside it in sibling
  * java_* directories and are never compiled together.
  */
-final class HudIconRenderer {
+public final class HudIconRenderer {
 
     private HudIconRenderer() {
     }
 
-    static void drawIcon(DrawContext context, Identifier texture, int x, int y, int size, int sourcePx) {
+    public static void drawIcon(DrawContext context, Identifier texture, int x, int y, int size, int sourcePx) {
         context.drawTexture(texture, x, y, 0, 0, size, size, sourcePx, sourcePx, sourcePx, sourcePx);
     }
 }
