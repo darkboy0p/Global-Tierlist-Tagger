@@ -39,10 +39,10 @@ public final class GTLTaggerHud {
 
     private static final int BG_COLOR = 0x50000000; // ~31% black - deliberately translucent, not a solid panel
     private static final int PADDING = 4;
-    private static final int LINE_HEIGHT = 14;
-    private static final int ICON_SIZE = 14; // a bit bigger than the old 9px - readable without dominating the box
-    private static final int ICON_TEXT_GAP = 3;
-    private static final int ICON_SOURCE_PX = 256; // all kit icons ship as 256x256
+    private static final int LINE_HEIGHT = 20;
+    private static final int ICON_SIZE = 20; // bumped up from 14 - was rendering as a barely-visible speck
+    private static final int ICON_TEXT_GAP = 4;
+    private static final int ICON_SOURCE_PX = 512; // all kit icons ship as 512x512
     private static final int DEFAULT_TEXT_COLOR = 0xFFFFFF;
 
     private GTLTaggerHud() {

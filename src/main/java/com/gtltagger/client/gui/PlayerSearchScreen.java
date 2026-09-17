@@ -28,7 +28,7 @@ import java.util.TreeMap;
 public class PlayerSearchScreen extends Screen {
 
     private static final int ICON_SIZE = 12;
-    private static final int ICON_SOURCE_PX = 256; // all kit icons ship as 256x256
+    private static final int ICON_SOURCE_PX = 512; // all kit icons ship as 512x512
     private static final int ROW_HEIGHT = 16;
 
     private final Screen parent;
