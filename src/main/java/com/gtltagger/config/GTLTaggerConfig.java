@@ -23,22 +23,18 @@ public class GTLTaggerConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path PATH = FabricLoader.getInstance().getConfigDir().resolve("gtltagger.json");
 
-    // --- Tier display (section 4) ---
-    public LeftRightMode tierMode = LeftRightMode.BOTH;
-
-    /** Short ("LT5") vs full ("Low Tier 5") tier text - applies to the HUD and nametag; TAB always uses the short form. */
-    public TierNameFormat tierNameFormat = TierNameFormat.SHORT;
-
-    // --- Gamemodes (section 2 / 8) ---
+    // --- Gamemodes / tier display (section 2 / 4 / 8) ---
+    // Left and right are each: which kit its tier is for, and which
+    // surface(s) show it. There's no separate "enable 2nd gamemode"
+    // switch anymore - the right side is simply on whenever
+    // rightSurface isn't OFF.
     public String gamemode1 = "NethPot";
     public String gamemode2 = "Crystal";
-    public boolean secondGamemodeEnabled = false;
+    public DisplaySurface leftSurface = DisplaySurface.BOTH;
+    public DisplaySurface rightSurface = DisplaySurface.BOTH;
 
-    // --- TAB (section 5 / 8) ---
-    public boolean tabTiersEnabled = true;
-
-    // --- In-world nametag ---
-    public boolean nametagTiersEnabled = true;
+    /** Short ("LT5") vs full ("Low Tier 5") tier text - applies ONLY to the in-world nametag; TAB (and the HUD) always use the short form. */
+    public TierNameFormat tierNameFormat = TierNameFormat.SHORT;
 
     // --- Automatic kit detection (section 6 / 8) ---
     public boolean automaticDetectionEnabled = true;

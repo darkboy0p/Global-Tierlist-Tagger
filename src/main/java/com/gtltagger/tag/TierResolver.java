@@ -18,8 +18,9 @@ import java.util.Map;
  *  - LEFT tracks whatever's currently relevant - the auto-detected
  *    kit if enabled and tested, else Gamemode 1. This is the "what
  *    are we playing right now" slot.
- *  - RIGHT is a fixed secondary reference: Gamemode 2's tier, shown
- *    only when "Enable second gamemode" is on - e.g. always show a
+ *  - RIGHT is a fixed secondary reference: Gamemode 2's tier -
+ *    whether it's actually shown in TAB/the nametag is up to
+ *    config.rightSurface, not this class - e.g. always show a
  *    player's Crystal tier alongside whatever kit is currently
  *    active in NethPot.
  * Either side is simply omitted (returns null) if its target
@@ -53,9 +54,9 @@ public final class TierResolver {
     }
 
     public static Resolution resolveRight(String ign, GTLTaggerConfig config) {
-        if (!config.secondGamemodeEnabled) {
-            return null;
-        }
+        // Whether the right side is actually shown anywhere is up to
+        // config.rightSurface (checked by the TAB/nametag mixins) -
+        // this always resolves Gamemode 2's tier if tested.
         TierEntry entry = TierDatabase.get(ign, config.gamemode2);
         return entry != null ? new Resolution(config.gamemode2, entry) : null;
     }

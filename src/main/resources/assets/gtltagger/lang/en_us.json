@@ -1,7 +1,8 @@
 {
   "key.categories.gtltagger": "GTLTagger",
-  "key.gtltagger.switch_gamemode": "Switch Gamemode",
-  "key.gtltagger.toggle_left_right": "Toggle Left/Right Tier",
+  "key.gtltagger.cycle_left_gamemode": "Cycle Left Gamemode",
+  "key.gtltagger.cycle_right_gamemode": "Cycle Right Gamemode",
+  "key.gtltagger.open_player_search": "Search Player (Peek)",
   "key.gtltagger.copy_tag": "Copy My TierTag",
   "key.gtltagger.open_settings": "Open GTLTagger Settings"
 }

@@ -13,6 +13,7 @@ import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 import com.gtltagger.GTLTaggerMod;
 import com.gtltagger.client.gui.GTLTaggerSettingsScreen;
+import com.gtltagger.client.gui.PlayerSearchScreen;
 import com.gtltagger.client.hud.GTLTaggerHud;
 import com.gtltagger.config.GTLTaggerConfig;
 import com.gtltagger.data.TierDatabase;
@@ -26,20 +27,29 @@ import com.gtltagger.tag.TierTagGenerator;
  * (config, HUD, keybinds, commands) is wired up here.
  *
  * Design note / assumption: the spec doesn't name an explicit keybind
- * for "generate my tag", only for switching gamemode and toggling
- * left/right. This mod treats the TierTag as being about the LOCAL
- * player's own tier (the thing you paste in chat when someone asks
- * "what's your tier?"), generated for whichever gamemode is currently
- * active (detected kit, falling back to gamemode1). It's available two
- * ways: an optional "Copy My TierTag" keybind (unbound by default —
- * bind it in Controls if you want one) and the "/gtltagger tag"
- * command. The TAB display is the separate, already-fully-specified
- * feature that shows OTHER players' tested tiers next to their name.
+ * for "generate my tag", only for switching gamemode. This mod treats
+ * the TierTag as being about the LOCAL player's own tier (the thing
+ * you paste in chat when someone asks "what's your tier?"), generated
+ * for whichever gamemode is currently active (detected kit, falling
+ * back to gamemode1). It's available two ways: an optional "Copy My
+ * TierTag" keybind (unbound by default — bind it in Controls if you
+ * want one) and the "/gtltagger tag" command. The TAB display is the
+ * separate, already-fully-specified feature that shows OTHER players'
+ * tested tiers next to their name.
+ *
+ * Left and right now each cycle their own gamemode independently
+ * (cycleLeftGamemodeKey / cycleRightGamemodeKey) - which surface(s)
+ * each side shows on is a settings-screen choice (DisplaySurface),
+ * not a keybind, since a 4-state cycle per side would need its own
+ * pair of keys anyway. H, previously "switch gamemode", now opens the
+ * player-search screen instead (see PlayerSearchScreen) - that's a
+ * more frequent action than gamemode switching for most sessions.
  */
 public class GTLTaggerClient implements ClientModInitializer {
 
-    private static KeyBinding switchGamemodeKey;
-    private static KeyBinding toggleLeftRightKey;
+    private static KeyBinding cycleLeftGamemodeKey;
+    private static KeyBinding cycleRightGamemodeKey;
+    private static KeyBinding openPlayerSearchKey;
     private static KeyBinding copyTagKey;
     private static KeyBinding openSettingsKey;
 
@@ -55,17 +65,24 @@ public class GTLTaggerClient implements ClientModInitializer {
     }
 
     private void registerKeyBindings() {
-        switchGamemodeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.gtltagger.switch_gamemode",
+        cycleLeftGamemodeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.gtltagger.cycle_left_gamemode",
                 InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_H, // spec section 3 default
+                GLFW.GLFW_KEY_G,
                 "key.categories.gtltagger"
         ));
 
-        toggleLeftRightKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.gtltagger.toggle_left_right",
+        cycleRightGamemodeKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.gtltagger.cycle_right_gamemode",
                 InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_J, // no default specified in spec; chosen to avoid common conflicts
+                GLFW.GLFW_KEY_K,
+                "key.categories.gtltagger"
+        ));
+
+        openPlayerSearchKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.gtltagger.open_player_search",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_H, // spec section 3 default - repurposed from "switch gamemode"
                 "key.categories.gtltagger"
         ));
 
@@ -86,16 +103,22 @@ public class GTLTaggerClient implements ClientModInitializer {
 
     private void registerTickHandler(GTLTaggerConfig config) {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (switchGamemodeKey.wasPressed()) {
+            while (cycleLeftGamemodeKey.wasPressed()) {
                 config.gamemode1 = Gamemodes.next(config.gamemode1);
                 config.save();
-                feedback(client, "Gamemode: " + config.gamemode1);
+                feedback(client, "Left gamemode: " + config.gamemode1);
             }
 
-            while (toggleLeftRightKey.wasPressed()) {
-                config.tierMode = config.tierMode.next();
+            while (cycleRightGamemodeKey.wasPressed()) {
+                config.gamemode2 = Gamemodes.next(config.gamemode2);
                 config.save();
-                feedback(client, "Tier display: " + config.tierMode.label);
+                feedback(client, "Right gamemode: " + config.gamemode2);
+            }
+
+            while (openPlayerSearchKey.wasPressed()) {
+                if (client.currentScreen == null) {
+                    client.setScreen(new PlayerSearchScreen(null));
+                }
             }
 
             while (copyTagKey.wasPressed()) {
@@ -157,7 +180,8 @@ public class GTLTaggerClient implements ClientModInitializer {
         }
 
         TierEntry entry = TierDatabase.get(ign, gamemode);
-        String tag = TierTagGenerator.generate(ign, gamemode, entry != null ? entry.tier : null, config.tierMode);
+        String tag = TierTagGenerator.generate(ign, gamemode, entry != null ? entry.tier : null,
+                config.leftSurface.enabled(), config.rightSurface.enabled());
 
         client.keyboard.setClipboard(tag);
         feedback(client, "Copied: " + tag);

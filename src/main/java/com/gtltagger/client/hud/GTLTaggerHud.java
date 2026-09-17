@@ -29,16 +29,19 @@ import java.util.List;
  * compile classpath per matrix leg, so this class only ever sees one
  * implementation of drawIcon(...) at a time.
  *
- * Tier lines use the Short/Full text-format setting (config.tierNameFormat)
- * and are colored per-tier via {@link TierColors}.
+ * Tier line always uses the short tier code ("LT5") - the Short/Full
+ * text-format setting applies only to the in-world nametag, not here
+ * or in TAB - and is colored per-tier via {@link TierColors}. Never
+ * shows a peak tier (see {@link com.gtltagger.client.gui.PlayerSearchScreen}
+ * for that - press the player-search keybind to look a peak up).
  */
 public final class GTLTaggerHud {
 
-    private static final int BG_COLOR = 0x90000000; // ~56% black
+    private static final int BG_COLOR = 0x50000000; // ~31% black - deliberately translucent, not a solid panel
     private static final int PADDING = 4;
-    private static final int LINE_HEIGHT = 12;
-    private static final int ICON_SIZE = 9;
-    private static final int ICON_TEXT_GAP = 2;
+    private static final int LINE_HEIGHT = 14;
+    private static final int ICON_SIZE = 14; // a bit bigger than the old 9px - readable without dominating the box
+    private static final int ICON_TEXT_GAP = 3;
     private static final int ICON_SOURCE_PX = 256; // all kit icons ship as 256x256
     private static final int DEFAULT_TEXT_COLOR = 0xFFFFFF;
 
@@ -75,41 +78,23 @@ public final class GTLTaggerHud {
         List<HudLine> lines = new ArrayList<>();
         String ign = client.player.getGameProfile().getName();
 
-        if (config.secondGamemodeEnabled) {
-            appendModeLine(lines, ign, config.gamemode1, config);
-            appendModeLine(lines, ign, config.gamemode2, config);
-            return lines;
-        }
-
         String kit = config.automaticDetectionEnabled ? KitDetector.detect() : null;
         if (kit == null) {
             kit = config.gamemode1;
         }
         TierEntry entry = TierDatabase.get(ign, kit);
 
-        lines.add(new HudLine("GTLTagger"));
         lines.add(new HudLine("Kit: " + kit, KitIcons.get(kit)));
-        lines.add(tierLine("Tier: ", entry != null ? entry.tier : null, config));
-        if (entry != null && entry.peak != null) {
-            lines.add(tierLine("Peak: ", entry.peak, config));
-        }
+        lines.add(tierLine("Tier: ", entry != null ? entry.tier : null));
         return lines;
     }
 
-    private static void appendModeLine(List<HudLine> lines, String ign, String gamemode, GTLTaggerConfig config) {
-        TierEntry entry = TierDatabase.get(ign, gamemode);
-        String tier = entry != null ? entry.tier : null;
-        String text = gamemode + ": " + (tier != null ? TierText.render(tier, config.tierNameFormat) : "?");
-        Integer color = tier != null ? TierColors.rgbForTierNumber(TierText.tierNumber(tier)) : null;
-        lines.add(new HudLine(text, KitIcons.get(gamemode), color));
-    }
-
-    /** A "Tier: ..." / "Peak: ..." row: "?" and no color for an untested tier, else the formatted+colored tier. */
-    private static HudLine tierLine(String label, String tier, GTLTaggerConfig config) {
+    /** A "Tier: ..." row: "?" and no color for an untested tier, else the short-form, colored tier. Always the short code, like TAB - peak is deliberately not shown here (see PlayerSearchScreen). */
+    private static HudLine tierLine(String label, String tier) {
         if (tier == null) {
             return new HudLine(label + "?");
         }
-        return new HudLine(label + TierText.render(tier, config.tierNameFormat), null,
+        return new HudLine(label + TierText.shortForm(tier), null,
                 TierColors.rgbForTierNumber(TierText.tierNumber(tier)));
     }
 

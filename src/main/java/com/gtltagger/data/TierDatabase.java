@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  * no longer reads a local config/gtltagger/players.json file.
  *
  * A background refresh is kicked off immediately on {@link #load()}
- * and repeats every {@link #REFRESH_INTERVAL_MINUTES} minutes. If a
+ * and repeats every {@link #REFRESH_INTERVAL_MINUTES} (2) minutes. If a
  * refresh fails (offline, API down, bad response), the previous
  * successful snapshot is kept rather than cleared, so a transient
  * outage doesn't blank out tier lookups mid-session - check the log
@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  */
 public class TierDatabase {
 
-    private static final long REFRESH_INTERVAL_MINUTES = 5;
+    private static final long REFRESH_INTERVAL_MINUTES = 2;
 
     private static final ScheduledExecutorService EXECUTOR =
             Executors.newSingleThreadScheduledExecutor(daemonThreadFactory());

@@ -47,7 +47,6 @@ public class HudPositionScreen extends Screen {
         List<GTLTaggerHud.HudLine> lines = GTLTaggerHud.buildLines(this.client, config);
         if (lines.isEmpty()) {
             lines = List.of(
-                    new GTLTaggerHud.HudLine("GTLTagger"),
                     new GTLTaggerHud.HudLine("Kit: NethPot"),
                     new GTLTaggerHud.HudLine("Tier: ?"));
         }

@@ -7,6 +7,10 @@ import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.text.Text;
 import com.gtltagger.gamemode.Gamemodes;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 /**
  * Best-effort automatic kit/gamemode detection (spec section 6).
  *
@@ -23,6 +27,23 @@ import com.gtltagger.gamemode.Gamemodes;
  * a name from {@link Gamemodes#ORDER}, or null.
  */
 public final class KitDetector {
+
+    /**
+     * One whole-word, case-insensitive pattern per known gamemode.
+     * Previously this used a raw {@code String.contains(...)} check,
+     * which false-positived on any text merely containing a kit name
+     * as a substring of an unrelated word - e.g. a line like
+     * "Teleporting..." or a server/rank name containing "pot" or
+     * "smp" would wrongly be detected as the Pot or SMP kit. Matching
+     * on a whole word instead fixes that.
+     */
+    private static final Map<String, Pattern> WORD_PATTERNS = new HashMap<>();
+
+    static {
+        for (String gamemode : Gamemodes.ORDER) {
+            WORD_PATTERNS.put(gamemode, Pattern.compile("\\b" + Pattern.quote(gamemode) + "\\b", Pattern.CASE_INSENSITIVE));
+        }
+    }
 
     private KitDetector() {
     }
@@ -69,8 +90,9 @@ public final class KitDetector {
     private static String findKnownGamemode(Text text) {
         if (text == null) return null;
         String plain = text.getString();
+        if (plain.isBlank()) return null;
         for (String gamemode : Gamemodes.ORDER) {
-            if (plain.toLowerCase().contains(gamemode.toLowerCase())) {
+            if (WORD_PATTERNS.get(gamemode).matcher(plain).find()) {
                 return gamemode;
             }
         }
