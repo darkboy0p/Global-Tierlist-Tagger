@@ -2,63 +2,63 @@
   "providers": [
     {
       "type": "bitmap",
-      "file": "gtltagger:textures/icon/neth_pot.png",
+      "file": "gtltagger:icon/neth_pot.png",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE000"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:textures/icon/pot.png",
+      "file": "gtltagger:icon/pot.png",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE001"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:textures/icon/crystal.png",
+      "file": "gtltagger:icon/crystal.png",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE002"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:textures/icon/sword.png",
+      "file": "gtltagger:icon/sword.png",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE003"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:textures/icon/uhc.png",
+      "file": "gtltagger:icon/uhc.png",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE004"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:textures/icon/axe.png",
+      "file": "gtltagger:icon/axe.png",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE005"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:textures/icon/smp.png",
+      "file": "gtltagger:icon/smp.png",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE006"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:textures/icon/mace.png",
+      "file": "gtltagger:icon/mace.png",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE007"]
     },
     {
       "type": "bitmap",
-      "file": "gtltagger:textures/icon/overall.png",
+      "file": "gtltagger:icon/overall.png",
       "height": 8,
       "ascent": 7,
       "chars": ["\uE008"]
