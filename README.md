@@ -1,127 +1,106 @@
-# GTLTagger
+# GTL Tiertagger
 
-Fabric mod (Minecraft 1.20.1) implementing the GTLTagger spec: TierTag
-generation, gamemode selection + cycling, keybinds, TAB tier display,
-automatic kit detection, and an in-game HUD, all configurable from a
-dedicated in-mod settings screen.
+**See Global Tierlist (GTL) tiers. Everywhere.**
 
-## Design decisions / assumptions
+GTL Tiertagger is a client-side Fabric mod for the
+[**Global Tierlist**](https://gtltierlist.vercel.app), pulling live player
+tier data straight into your game and showing it right where you're already
+looking — the TAB list, nametags above players' heads, and your own
+on-screen HUD. No more alt-tabbing to the tier list website mid-fight.
 
-The spec left a few things unstated. Here's what this implementation
-assumes, and where to change it if you meant something else:
+🌐 **Global Tierlist website:** [gtltierlist.vercel.app](https://gtltierlist.vercel.app)
 
-- **Whose tier does the HUD/tag show?** The HUD and the
-  "generate my TierTag" action are about the **local player's own**
-  tier — the thing you'd paste in chat when someone asks "what's your
-  tier?". The **TAB list** is the separate feature that shows *other*
-  players' tested tiers next to their names, per spec section 5.
-- **No "generate tag" keybind was specified.** Only "Switch Gamemode"
-  and "Toggle Left/Right" have defaults in the spec. This mod adds an
-  optional `key.gtltagger.copy_tag` keybinding (unbound by default —
-  bind it in Controls & Keybinds if you want one) and a `/gtltagger
-  tag` command, either of which copies your current TierTag to the
-  system clipboard.
-- **"[:icon:TIER]" is literal text**, not a rendered image — it
-  matches how many servers resolve custom icons via a resource-pack
-  font (`[:icon:LT3]` etc.). If you actually want a texture-based icon
-  rendered by the mod itself (e.g. in the HUD), that's a separate,
-  larger feature — ping me and I'll add it.
-- **Kit detection** (`KitDetector`) is a best-effort heuristic: it
-  scans the sidebar scoreboard title and the TAB header/footer for a
-  known gamemode name. There is no universal way to know "what kit am
-  I in" across arbitrary servers — adjust `KitDetector.detect()` to
-  match how your server actually surfaces the current kit (action bar,
-  boss bar, a specific scoreboard line, etc.).
-- **The "Switch Gamemode" keybind cycles `gamemode1`** (the primary
-  slot). `gamemode2` is only changed via its dropdown in Settings,
-  matching the spec's "don't swap the two configured gamemodes" rule.
+## ✨ Features
 
-## Tier data
+- 🏷️ **TAB list tiers** — every GTL-tested player in the TAB list gets
+  their tier shown next to their name, with a real icon for the kit it was
+  tested in (NethPot, Pot, Crystal, Sword, UHC, Axe, SMP, Mace).
+- 🎮 **In-world nametags** — the same tier + icon can also show on a
+  player's nametag above their head, so you know who you're fighting before
+  you're even close enough to check TAB.
+- 📊 **On-screen HUD** — a movable, resizable HUD showing your Global
+  Tierlist tier info at a glance, positioned however you like via
+  `/gtltagger settings` or the HUD position screen.
+- 🔍 **Player search** — look up any player's GTL tiers across every kit
+  without leaving the game.
+- 🤖 **Automatic kit detection** — reads your server's scoreboard/TAB
+  header-footer to figure out which kit you're currently playing, so the
+  right tier shows automatically.
+- 🎯 **Independent Left/Right slots** — track two different kits at once
+  (e.g. your current kit on the left, always-visible Crystal on the right),
+  each with its own TAB / Nametag / Both / Off toggle.
+- 📋 **TierTag generator** — instantly copy a `[:icon:TIER]IGN[:icon:TIER]`
+  tag for your own current tier to your clipboard, for pasting in chat.
+- ⚙️ **Fully configurable in-game** — every setting lives in its own
+  settings screen (`/gtltagger` or a bindable keybind), no config file
+  editing required.
+- 🔄 **Always up to date** — tier data refreshes automatically every 5
+  minutes in the background, plus an instant `/gtltagger reload`.
 
-Player tier data comes from the [GlobalTierlist
-API](https://globaltierlist-api.vercel.app) (`GET /api/players`) —
-there is no local `players.json` file anymore. On launch, and every 5
-minutes after that, the mod fetches the full player list in the
-background and caches it in memory; `/gtltagger reload` triggers an
-immediate refresh without restarting. If a refresh fails (offline,
-API down), the previous successful data is kept rather than cleared —
-check the log for a warning if tiers look stale.
+## ⌨️ Default keybinds
 
-The API's gamemode names are mapped to this mod's names in
-`Gamemodes.TO_API_NAME` / `FROM_API_NAME` (its `Diapot` is this mod's
-`Pot`; everything else only differs in casing) — edit that mapping if
-the API adds or renames a gamemode.
+| Key | Action |
+|---|---|
+| `G` | Cycle the Left slot's gamemode |
+| `K` | Cycle the Right slot's gamemode |
+| `H` | Open player search |
 
-## Building — no local build needed
+All keybinds are rebindable in-game, either from GTL Tiertagger's own
+Settings screen or from vanilla's Controls & Keybinds menu under "GTLTagger".
+Two extra actions ("Copy My TierTag" and "Open Settings") exist as keybinds
+too but ship unbound — set them yourself if you want them.
 
-A GitHub Actions workflow (`.github/workflows/build.yml`) builds the
-mod jar in the cloud on every push, so a low-end PC never has to run
-Gradle/Loom locally. It runs one job per supported Minecraft patch
-(1.21.1 through 1.21.7 — fabric.mod.json's declared range), resolving
-the matching Yarn mappings, Fabric Loader, and Fabric API versions for
-each patch automatically:
+## 💬 Commands
+
+- `/gtltagger` or `/gtltagger settings` — open the settings menu
+- `/gtltagger tag` — copy your current TierTag to the clipboard
+- `/gtltagger reload` — force-refresh tier data from Global Tierlist
+
+## 📦 Requirements
+
+- Minecraft **1.21.1 – 1.21.7**
+- [Fabric Loader](https://fabricmc.net/use/) 0.16.14+
+- [Fabric API](https://modrinth.com/mod/fabric-api) (matching your MC
+  version)
+- Java 21
+
+GTL Tiertagger is **client-side only** — no server installation needed.
+
+## 🛠️ Building from source
+
+A GitHub Actions workflow builds the mod jar in the cloud on every push, one
+job per supported Minecraft patch:
 
 1. Push this project to a GitHub repo.
-2. Open the **Actions** tab — the "Build" workflow runs automatically,
-   as one job per Minecraft version.
-3. Once it finishes, open the run and download the **GTLTagger-mc\***
-   artifact for whichever Minecraft version you want (one per job) from
-   the bottom of the page.
-4. Pushing a tag like `v1.0.0` also publishes every version's jar as a
-   single GitHub Release automatically.
+2. Open the **Actions** tab and let the **Build** workflow run.
+3. Download the matching **GTLTagger-mc\*** artifact for your Minecraft
+   version from the finished run.
+4. Pushing a tag like `v1.0.0` also publishes every version's jar together
+   as a single GitHub Release.
 
-Only 1.21.7 has actually been built/verified against this codebase —
-see the note at the top of `build.yml`. A patch version's job going
-red means that patch's client APIs shifted under the mixins/code here
-and need a fix, not that the workflow itself is broken.
-
-Note: this project does **not** bundle the Gradle wrapper jar (a
-binary file), so `./gradlew` won't work until you generate it once —
-run `gradle wrapper` locally with any installed Gradle, or just rely
-on CI above. If you do want to build locally, requires JDK 17+ and
-internet access on first run:
+To build locally instead (requires JDK 21):
 
 ```
-gradle build       # or ./gradlew build, once the wrapper is generated
+gradle build       # or ./gradlew build once the wrapper is generated
+gradle runClient   # to test in a dev client
 ```
 
-The built mod jar appears in `build/libs/`. Drop it (plus [Fabric API]
-(https://modrinth.com/mod/fabric-api) for the matching Minecraft
-version) into your `mods` folder along with Fabric Loader.
+The built jar appears in `build/libs/`.
 
-To test locally in a dev client:
+## 🙌 Credits
 
-```
-gradle runClient
-```
+Created by **[@darkboyop](https://github.com/darkboyop)** for the
+[Global Tierlist](https://gtltierlist.vercel.app).
 
-## In-game usage
+## 💬 Support / Community
 
-- `H` — cycle Gamemode 1 through the configured list.
-- `J` — cycle Left/Right tier display: Both → Left → Right → Off.
-- `/gtltagger` (or `/gtltagger settings`) — open the settings menu.
-- `/gtltagger tag` — copy your current TierTag to the clipboard.
-- `/gtltagger reload` — reload `players.json` without restarting.
+Questions, bug reports, or feature requests — join the Discord:
+**[discord.gg/6Yvgvr8Vdy](https://discord.gg/6Yvgvr8Vdy)**
 
-All keybinds are also rebindable from the mod's own Settings screen
-(click the key button, then press a new key) or from vanilla's
-Controls & Keybinds screen under the "GTLTagger" category.
+Or check out the Global Tierlist itself: **[gtltierlist.vercel.app](https://gtltierlist.vercel.app)**
 
-## Not yet implemented
+## 📄 License
 
-The current codebase targets **Minecraft 1.20.1, Fabric Loader
-0.15.7+, Java 17** — the same verified-working baseline from before,
-just renamed. It does **not** yet include the newer feature list
-(1.21.1–1.21.11 support, Fabric Loader 0.16+, Java 21, Mod Menu
-integration, an in-settings player search, per-tier customizable
-colors, or resource-pack-driven icon textures). I held off on bumping
-the Minecraft/Java versions in this pass because the existing code
-calls 1.20.1-mapped API names (`PlayerListHud`, `Scoreboard`,
-`CheckboxWidget`, etc.) that can rename between major versions —
-changing the version numbers without re-verifying every call would
-likely break the "no crashes, no errors" goal rather than help it.
-
-Say the word and I'll do that port properly next: re-verify each API
-call against 1.21.1 mappings, add the Mod Menu config-screen
-entrypoint, and build out search + color customization + resource-pack
-icon support.
+All Rights Reserved — see [LICENSE](LICENSE). Compiled builds (the jar on
+Modrinth/GitHub) are free to download and use; the source code is not
+licensed for reuse or redistribution without permission.

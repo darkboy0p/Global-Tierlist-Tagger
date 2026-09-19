@@ -2,12 +2,16 @@
   "schemaVersion": 1,
   "id": "gtltagger",
   "version": "${version}",
-  "name": "GTLTagger",
-  "description": "Generates [:icon:TIER]IGN[:icon:TIER] chat tags for Minecraft PvP tier lists, with TAB display, kit detection, and an in-game HUD.",
-  "authors": ["You"],
-  "contact": {},
-  "license": "MIT",
+  "name": "GTL Tiertagger",
+  "description": "The official Fabric companion mod for the Global Tierlist (GTL). Shows GTL PvP tiers in the TAB list, nametags, and an in-game HUD, with kit detection and TierTag chat generation.",
+  "authors": ["darkboyop"],
+  "contact": {
+    "homepage": "https://gtltierlist.vercel.app",
+    "discord": "https://discord.gg/6Yvgvr8Vdy"
+  },
+  "license": "ARR",
   "environment": "client",
+  "icon": "assets/gtltagger/icon.png",
   "entrypoints": {
     "client": [
       "com.gtltagger.client.GTLTaggerClient"
