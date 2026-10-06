@@ -2,16 +2,15 @@
   "schemaVersion": 1,
   "id": "gtltagger",
   "version": "${version}",
-  "name": "GTL Tiertagger",
-  "description": "The official Fabric companion mod for the Global Tierlist (GTL). Shows GTL PvP tiers in the TAB list, nametags, and an in-game HUD, with kit detection and TierTag chat generation.",
+  "name": "GTLTagger",
+  "description": "See Global Tierlist (GTL) tiers in your TAB list, above player nametags, and on a customizable HUD. Includes player search, automatic kit detection, and a TierTag generator.",
   "authors": ["darkboyop"],
   "contact": {
     "homepage": "https://gtltierlist.vercel.app",
-    "discord": "https://discord.gg/6Yvgvr8Vdy"
+    "discord": "https://discord.gg/E8FPMEHPtv"
   },
-  "license": "ARR",
+  "license": "MIT",
   "environment": "client",
-  "icon": "assets/gtltagger/icon.png",
   "entrypoints": {
     "client": [
       "com.gtltagger.client.GTLTaggerClient"
