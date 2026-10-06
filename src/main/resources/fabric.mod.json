@@ -3,10 +3,12 @@
   "id": "gtltagger",
   "version": "${version}",
   "name": "GTLTagger",
-  "description": "See Global Tierlist (GTL) tiers in your TAB list, above player nametags, and on a customizable HUD. Includes player search, automatic kit detection, and a TierTag generator.",
-  "authors": ["darkboyop"],
+  "description": "Shows Global Tierlist (GTL) ranking website tiers in your TAB list, above player nametags, and on a customizable HUD. Includes player search, automatic kit detection, and a TierTag generator.",
+  "authors": [
+    "darkboyop"
+  ],
   "contact": {
-    "homepage": "https://gtltierlist.vercel.app",
+    "ranking-website": "https://gtltierlist.vercel.app",
     "discord": "https://discord.gg/E8FPMEHPtv"
   },
   "license": "MIT",
