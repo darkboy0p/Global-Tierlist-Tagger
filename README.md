@@ -65,7 +65,7 @@ too but ship unbound — set them yourself if you want them.
 
 ## 📦 Requirements
 
-- Minecraft **1.21.1 – 1.21.7**
+- Minecraft **1.21.1 – 1.21.8**
 - [Fabric Loader](https://fabricmc.net/use/) 0.16.14+
 - [Fabric API](https://modrinth.com/mod/fabric-api) (matching your MC
   version)
@@ -75,9 +75,9 @@ GTL Tiertagger is **client-side only** — no server installation needed.
 
 ## 🛠️ Building from source
 
-One jar covers every supported Minecraft 1.21.x version (1.21.1 – 1.21.7).
+One jar covers every supported Minecraft 1.21.x version (1.21.1 – 1.21.8).
 GitHub Actions compiles it against 1.21.1 and then compile-checks the same
-source against 1.21.2 – 1.21.7:
+source against 1.21.2 – 1.21.8:
 
 1. Push to GitHub and open the **Actions** tab.
 2. Download the **GTLTagger** artifact from the finished **Build** run.
