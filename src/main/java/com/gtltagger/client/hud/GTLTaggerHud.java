@@ -2,8 +2,6 @@ package com.gtltagger.client.hud;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.util.Identifier;
-import com.gtltagger.client.KitIcons;
 import com.gtltagger.config.GTLTaggerConfig;
 import com.gtltagger.data.TierDatabase;
 import com.gtltagger.data.TierEntry;
@@ -19,15 +17,9 @@ import java.util.List;
  * (spec section 7). Position is stored in config and edited via
  * {@link com.gtltagger.client.gui.HudPositionScreen}.
  *
- * Gamemode lines are drawn with the real kit icon texture (from
- * assets/gtltagger/textures/icon/) rather than as plain text. The
- * actual drawTexture(...) call lives in {@link HudIconRenderer}
- * instead of here, because that method's argument shape changed twice
- * within the 1.21.1-1.21.7 range this repo's CI matrix builds against
- * (see HudIconRenderer's own javadoc, and KitIcons.java). build.gradle
- * adds exactly one version-specific HudIconRenderer.java to the
- * compile classpath per matrix leg, so this class only ever sees one
- * implementation of drawIcon(...) at a time.
+ * Gamemode lines are drawn with the real kit icon, rendered as a font
+ * glyph (see {@link HudIconRenderer} / IconGlyphs) so the same code runs
+ * on every Minecraft 1.21.x version.
  *
  * Tier line always uses the short tier code ("LT5") - the Short/Full
  * text-format setting applies only to the in-world nametag, not here
@@ -42,20 +34,19 @@ public final class GTLTaggerHud {
     private static final int LINE_HEIGHT = 20;
     private static final int ICON_SIZE = 20; // bumped up from 14 - was rendering as a barely-visible speck
     private static final int ICON_TEXT_GAP = 4;
-    private static final int ICON_SOURCE_PX = 512; // all kit icons ship as 512x512
     private static final int DEFAULT_TEXT_COLOR = 0xFFFFFF;
 
     private GTLTaggerHud() {
     }
 
     /** One HUD row: text, the kit icon to draw before it (if any), and a text color override (if any - defaults to white). */
-    public record HudLine(String text, Identifier icon, Integer color) {
+    public record HudLine(String text, String iconKit, Integer color) {
         public HudLine(String text) {
             this(text, null, null);
         }
 
-        public HudLine(String text, Identifier icon) {
-            this(text, icon, null);
+        public HudLine(String text, String iconKit) {
+            this(text, iconKit, null);
         }
     }
 
@@ -84,7 +75,7 @@ public final class GTLTaggerHud {
         }
         TierEntry entry = TierDatabase.get(ign, kit);
 
-        lines.add(new HudLine("Kit: " + kit, KitIcons.get(kit)));
+        lines.add(new HudLine("Kit: " + kit, kit));
         lines.add(tierLine("Tier: ", entry != null ? entry.tier : null));
         return lines;
     }
@@ -98,11 +89,15 @@ public final class GTLTaggerHud {
                 TierColors.rgbForTierNumber(TierText.tierNumber(tier)));
     }
 
+    private static boolean hasIcon(HudLine line) {
+        return line.iconKit() != null && HudIconRenderer.has(line.iconKit());
+    }
+
     public static void renderBox(DrawContext drawContext, MinecraftClient client, List<HudLine> lines, int x, int y) {
         int maxWidth = 0;
         for (HudLine line : lines) {
             int textWidth = client.textRenderer.getWidth(line.text());
-            int lineWidth = line.icon() != null ? ICON_SIZE + ICON_TEXT_GAP + textWidth : textWidth;
+            int lineWidth = hasIcon(line) ? ICON_SIZE + ICON_TEXT_GAP + textWidth : textWidth;
             maxWidth = Math.max(maxWidth, lineWidth);
         }
 
@@ -115,9 +110,9 @@ public final class GTLTaggerHud {
             int rowY = y + PADDING + i * LINE_HEIGHT;
             int textX = x + PADDING;
 
-            if (line.icon() != null) {
+            if (hasIcon(line)) {
                 int iconY = rowY + (LINE_HEIGHT - ICON_SIZE) / 2;
-                HudIconRenderer.drawIcon(drawContext, line.icon(), textX, iconY, ICON_SIZE, ICON_SOURCE_PX);
+                HudIconRenderer.drawIcon(drawContext, client.textRenderer, line.iconKit(), textX, iconY, true);
                 textX += ICON_SIZE + ICON_TEXT_GAP;
             }
 

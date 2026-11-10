@@ -5,9 +5,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
-import com.gtltagger.client.KitIcons;
 import com.gtltagger.client.hud.HudIconRenderer;
 import com.gtltagger.data.TierDatabase;
 import com.gtltagger.data.TierEntry;
@@ -36,7 +34,6 @@ import java.util.Map;
 public class PlayerSearchScreen extends Screen {
 
     private static final int ICON_SIZE = 12;
-    private static final int ICON_SOURCE_PX = 512; // all bundled kit icons are 512x512
     private static final int ROW_HEIGHT = 16;
     private static final int MAX_SUGGESTIONS = 6;
     private static final int SUGGESTION_HEIGHT = 14;
@@ -309,10 +306,7 @@ public class PlayerSearchScreen extends Screen {
             TierEntry entry = list.get(i).getValue();
 
             // Gamemodes without bundled art (newly added ones) simply show no icon.
-            Identifier icon = KitIcons.get(gamemode);
-            if (icon != null) {
-                HudIconRenderer.drawIcon(drawContext, icon, rowX, rowY, ICON_SIZE, ICON_SOURCE_PX);
-            }
+            HudIconRenderer.drawIcon(drawContext, this.textRenderer, gamemode, rowX, rowY, false);
 
             String line = gamemode + ": " + TierText.shortForm(entry.tier)
                     + (entry.peak != null ? "  (Peak: " + TierText.shortForm(entry.peak) + ")" : "");

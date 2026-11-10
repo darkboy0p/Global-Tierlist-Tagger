@@ -75,24 +75,16 @@ GTL Tiertagger is **client-side only** — no server installation needed.
 
 ## 🛠️ Building from source
 
-A GitHub Actions workflow builds the mod jar in the cloud on every push, one
-job per supported Minecraft patch:
+One jar covers every supported Minecraft 1.21.x version (1.21.1 – 1.21.7).
+GitHub Actions compiles it against 1.21.1 and then compile-checks the same
+source against 1.21.2 – 1.21.7:
 
-1. Push this project to a GitHub repo.
-2. Open the **Actions** tab and let the **Build** workflow run.
-3. Download the matching **GTLTagger-mc\*** artifact for your Minecraft
-   version from the finished run.
-4. Pushing a tag like `v1.0.0` also publishes every version's jar together
-   as a single GitHub Release.
+1. Push to GitHub and open the **Actions** tab.
+2. Download the **GTLTagger** artifact from the finished **Build** run.
+3. Pushing a tag like `v1.1.0` also publishes the jar as a GitHub Release.
 
-To build locally instead (requires JDK 21):
-
-```
-gradle build       # or ./gradlew build once the wrapper is generated
-gradle runClient   # to test in a dev client
-```
-
-The built jar appears in `build/libs/`.
+Local build (JDK 21): `gradle build` (jar in `build/libs/`; local builds
+compile against whatever `gradle.properties` says - the CI jar uses 1.21.1).
 
 ## 🙌 Credits
 

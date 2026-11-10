@@ -27,7 +27,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
         TabTextHolder.set(packet.header(), packet.footer());
     }
 
-    @Inject(method = "clearWorld", at = @At("TAIL"))
+    @Inject(method = "clearWorld", at = @At("TAIL"), require = 0)
     private void gtltagger$clearHeaderFooter(CallbackInfo ci) {
         TabTextHolder.clear();
     }
