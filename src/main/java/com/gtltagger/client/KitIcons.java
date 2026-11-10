@@ -25,7 +25,7 @@ public final class KitIcons {
     private static final Map<String, Identifier> ICONS = new HashMap<>();
 
     static {
-        for (String kit : Gamemodes.ORDER) {
+        for (String kit : Gamemodes.CORE) {
             register(kit);
         }
         register("Overall");
@@ -39,7 +39,7 @@ public final class KitIcons {
         ICONS.put(kit, Identifier.of(GTLTaggerMod.MOD_ID, "textures/icon/" + fileName + ".png"));
     }
 
-    /** Returns the icon texture for {@code kit} (case-sensitive, matching {@link Gamemodes#ORDER} or "Overall"), or null if unknown. */
+    /** Returns the icon texture for {@code kit} (case-sensitive, matching {@link Gamemodes#CORE} or "Overall"), or null if unknown. */
     public static Identifier get(String kit) {
         return ICONS.get(kit);
     }

@@ -21,8 +21,15 @@ on-screen HUD. No more alt-tabbing to the tier list website mid-fight.
 - 📊 **On-screen HUD** — a movable, resizable HUD showing your Global
   Tierlist tier info at a glance, positioned however you like via
   `/gtltagger settings` or the HUD position screen.
-- 🔍 **Player search** — look up any player's GTL tiers across every kit
-  without leaving the game.
+- 🧩 **Every gamemode** — all kits the Global Tierlist API returns are
+  supported, not just a fixed list. Gamemodes added to the tier list later
+  show up automatically (TAB, nametags, HUD, search, settings cyclers and
+  kit detection); the eight classic kits keep their custom icons, new ones
+  show tier text without an icon.
+- 🔍 **Player search** — look up any player's tiers (and peaks) across every
+  gamemode without leaving the game: live name suggestions with
+  autocomplete (↑/↓ to pick, Tab to complete, Enter to search), results that
+  update as you type, and a scrollable list for players with many modes.
 - 🤖 **Automatic kit detection** — reads your server's scoreboard/TAB
   header-footer to figure out which kit you're currently playing, so the
   right tier shows automatically.
@@ -91,6 +98,17 @@ The built jar appears in `build/libs/`.
 
 Created by **[@darkboyop](https://github.com/darkboyop)** for the
 [Global Tierlist](https://gtltierlist.vercel.app).
+
+The search screen's behaviour (name suggestions, live results) is inspired by
+[uku3lig/TierTagger](https://github.com/uku3lig/TierTagger) (MPL-2.0); the
+implementation in this repo is separate, and no TierTagger source code is
+included.
+
+### AI assistance disclosure
+
+Parts of this project's code were written with the help of an AI assistant
+(Anthropic's Claude) and reviewed/maintained by the author. This project is
+not published on Modrinth.
 
 ## 💬 Support / Community
 

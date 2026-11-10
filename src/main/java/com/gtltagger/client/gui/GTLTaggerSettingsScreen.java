@@ -127,7 +127,7 @@ public class GTLTaggerSettingsScreen extends Screen {
                             java.util.function.Consumer<String> onGamemode,
                             java.util.function.Consumer<DisplaySurface> onSurface) {
         this.addDrawableChild(CyclingButtonWidget.<String>builder(Text::literal)
-                .values(Gamemodes.ORDER)
+                .values(Gamemodes.all())
                 .initially(currentGamemode)
                 .build(centerX - WIDGET_WIDTH / 2, y, HALF_WIDTH, 20,
                         Text.literal(label + " Gamemode"),

@@ -94,6 +94,7 @@ public final class GlobalTierlistApi {
             return result;
         }
 
+        java.util.Set<String> discovered = new java.util.HashSet<>();
         for (ApiPlayer player : players) {
             if (player.ign == null || player.gamemodes == null) {
                 continue;
@@ -103,19 +104,20 @@ public final class GlobalTierlistApi {
                 if (entry.gamemode == null || entry.rank == null) {
                     continue;
                 }
-                String modName = Gamemodes.FROM_API_NAME.get(entry.gamemode);
+                // Every gamemode is kept - core kits map to their familiar
+                // names, anything new keeps the API's own name.
+                String modName = Gamemodes.fromApiName(entry.gamemode);
                 if (modName == null) {
-                    // Unknown/new gamemode on the API side — skip rather
-                    // than guess at a mapping (see GTLTaggerMod.LOGGER
-                    // warning in TierDatabase for visibility).
                     continue;
                 }
+                discovered.add(modName);
                 modes.put(modName, new TierEntry(entry.rank, entry.peakTier));
             }
             if (!modes.isEmpty()) {
                 result.put(player.ign, modes);
             }
         }
+        Gamemodes.registerDiscovered(discovered);
         return result;
     }
 }

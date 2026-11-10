@@ -7,7 +7,6 @@ import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.text.Text;
 import com.gtltagger.gamemode.Gamemodes;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -24,7 +23,7 @@ import java.util.regex.Pattern;
  * If your server exposes the kit some other way (boss bar, action
  * bar, a specific scoreboard line, etc.) adjust {@link #detect()}
  * accordingly — the rest of the mod only depends on this returning
- * a name from {@link Gamemodes#ORDER}, or null.
+ * a name from {@link Gamemodes#all()}, or null.
  */
 public final class KitDetector {
 
@@ -37,18 +36,19 @@ public final class KitDetector {
      * "smp" would wrongly be detected as the Pot or SMP kit. Matching
      * on a whole word instead fixes that.
      */
-    private static final Map<String, Pattern> WORD_PATTERNS = new HashMap<>();
+    private static final Map<String, Pattern> WORD_PATTERNS = new java.util.concurrent.ConcurrentHashMap<>();
 
-    static {
-        for (String gamemode : Gamemodes.ORDER) {
-            WORD_PATTERNS.put(gamemode, Pattern.compile("\\b" + Pattern.quote(gamemode) + "\\b", Pattern.CASE_INSENSITIVE));
-        }
+    /** Patterns are built lazily so gamemodes discovered from the API at runtime are detectable too. */
+    private static Pattern patternFor(String gamemode) {
+        return WORD_PATTERNS.computeIfAbsent(gamemode,
+                g -> Pattern.compile("(?<![\\p{L}\\p{N}])" + Pattern.quote(g) + "(?![\\p{L}\\p{N}])",
+                        Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
     }
 
     private KitDetector() {
     }
 
-    /** Returns a detected gamemode name from {@link Gamemodes#ORDER}, or null if unknown/unavailable. */
+    /** Returns a detected gamemode name from {@link Gamemodes#all()}, or null if unknown/unavailable. */
     public static String detect() {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null || client.world == null) {
@@ -91,8 +91,8 @@ public final class KitDetector {
         if (text == null) return null;
         String plain = text.getString();
         if (plain.isBlank()) return null;
-        for (String gamemode : Gamemodes.ORDER) {
-            if (WORD_PATTERNS.get(gamemode).matcher(plain).find()) {
+        for (String gamemode : Gamemodes.all()) {
+            if (patternFor(gamemode).matcher(plain).find()) {
                 return gamemode;
             }
         }

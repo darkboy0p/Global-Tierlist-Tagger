@@ -1,33 +1,32 @@
 package com.gtltagger.gamemode;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TreeSet;
 
 /**
- * The fixed gamemode cycle order from spec section 3.
- * Matches the kit set mctiers.io / pvptiers.com currently use
- * (icons for each of these ship in assets/gtltagger/textures/icon/).
- * Edit this list if your server's kit list differs.
+ * Gamemode registry.
+ *
+ * {@link #CORE} is the fixed set of kits that ship with a bundled icon
+ * (and a glyph in assets/gtltagger/font/icons.json). Every OTHER
+ * gamemode the Global Tierlist API returns is discovered at runtime
+ * (see {@link #registerDiscovered}) and becomes usable everywhere -
+ * TAB, nametags, HUD, search, settings cyclers, kit detection - just
+ * without a custom icon (the tier text is shown on its own).
+ *
+ * Use {@link #all()} for the full, current list; never cache it.
  */
 public final class Gamemodes {
-    public static final List<String> ORDER = List.of(
-            "NethPot",
-            "Pot",
-            "Crystal",
-            "Sword",
-            "UHC",
-            "Axe",
-            "SMP",
-            "Mace"
-    );
 
-    /**
-     * Maps this mod's gamemode names to the GlobalTierlist API's names
-     * (see API_DOCUMENTATION.md: "Gamemodes: Nethpot, Sword, Uhc, Diapot,
-     * Smp, Crystal, Axe, Mace"). The API's "Diapot" is this mod's "Pot";
-     * everything else is just a casing difference.
-     */
-    public static final Map<String, String> TO_API_NAME = Map.of(
+    /** Kits with a bundled icon, in cycle order. Do not mutate. */
+    public static final List<String> CORE = List.of(
+            "NethPot", "Pot", "Crystal", "Sword", "UHC", "Axe", "SMP", "Mace");
+
+    /** This mod's core name -> the API's name (API's "Diapot" is this mod's "Pot"). */
+    private static final Map<String, String> CORE_TO_API = Map.of(
             "NethPot", "Nethpot",
             "Pot", "Diapot",
             "Crystal", "Crystal",
@@ -35,48 +34,91 @@ public final class Gamemodes {
             "UHC", "Uhc",
             "Axe", "Axe",
             "SMP", "Smp",
-            "Mace", "Mace"
-    );
+            "Mace", "Mace");
 
-    /** Reverse of {@link #TO_API_NAME}, keyed by the API's gamemode name. */
-    public static final Map<String, String> FROM_API_NAME = Map.of(
-            "Nethpot", "NethPot",
-            "Diapot", "Pot",
-            "Crystal", "Crystal",
-            "Sword", "Sword",
-            "Uhc", "UHC",
-            "Axe", "Axe",
-            "Smp", "SMP",
-            "Mace", "Mace"
-    );
+    /** Extra gamemodes seen from the API, display name -> API name. Sorted, case-insensitive. */
+    private static final Map<String, String> EXTRA_TO_API =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static volatile List<String> allCache = CORE;
 
     private Gamemodes() {
     }
 
-    /** Returns the next gamemode after {@code current} in the fixed cycle order. */
-    public static String next(String current) {
-        int idx = ORDER.indexOf(current);
-        if (idx < 0) {
-            return ORDER.get(0);
-        }
-        return ORDER.get((idx + 1) % ORDER.size());
+    /** Every known gamemode: {@link #CORE} first, then discovered ones alphabetically. */
+    public static List<String> all() {
+        return allCache;
     }
 
-    public static boolean isKnown(String gamemode) {
-        return ORDER.contains(gamemode);
+    /** Maps an API gamemode name to this mod's display name (core name if known, else the API name itself). */
+    public static String fromApiName(String apiName) {
+        if (apiName == null) {
+            return null;
+        }
+        String trimmed = apiName.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        for (Map.Entry<String, String> e : CORE_TO_API.entrySet()) {
+            if (e.getValue().equalsIgnoreCase(trimmed) || e.getKey().equalsIgnoreCase(trimmed)) {
+                return e.getKey();
+            }
+        }
+        return trimmed;
+    }
+
+    /** Maps a display name back to the API's name. */
+    public static String toApiName(String display) {
+        String core = CORE_TO_API.get(display);
+        if (core != null) {
+            return core;
+        }
+        return EXTRA_TO_API.getOrDefault(display, display);
     }
 
     /**
-     * Literal chat-text icon token for this kit, matching a resource
-     * pack's per-kit font glyph key - e.g. "NethPot" -&gt; "nethpoticon",
-     * used to build "[:nethpoticon:LT5]"-shaped segments (see
-     * com.gtltagger.tag.TierTagGenerator and the TAB/nametag mixins).
-     * Falls back to the generic "icon" for an unknown/null kit.
+     * Records every gamemode seen in an API response so non-core ones
+     * show up in {@link #all()}. Safe to call from the refresh thread.
+     */
+    public static void registerDiscovered(Collection<String> displayNames) {
+        boolean changed = false;
+        for (String name : displayNames) {
+            if (name != null && !CORE.contains(name) && EXTRA_TO_API.putIfAbsent(name, name) == null) {
+                changed = true;
+            }
+        }
+        if (changed) {
+            TreeSet<String> sorted = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+            sorted.addAll(EXTRA_TO_API.keySet());
+            List<String> list = new ArrayList<>(CORE);
+            list.addAll(sorted);
+            allCache = List.copyOf(list);
+        }
+    }
+
+    /** Returns the next gamemode after {@code current} in {@link #all()} order. */
+    public static String next(String current) {
+        List<String> list = all();
+        int idx = list.indexOf(current);
+        if (idx < 0) {
+            return list.get(0);
+        }
+        return list.get((idx + 1) % list.size());
+    }
+
+    public static boolean isKnown(String gamemode) {
+        return gamemode != null && all().contains(gamemode);
+    }
+
+    /**
+     * Chat-text icon token for this kit, e.g. "NethPot" -> "nethpoticon"
+     * (used in "[:nethpoticon:LT5]" tags). Unknown kits fall back to the
+     * generic "icon".
      */
     public static String iconToken(String kit) {
         if (kit == null || !isKnown(kit)) {
             return "icon";
         }
-        return kit.toLowerCase(java.util.Locale.ROOT) + "icon";
+        return kit.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "") + "icon";
     }
 }

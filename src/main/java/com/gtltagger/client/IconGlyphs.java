@@ -31,7 +31,7 @@ public final class IconGlyphs {
 
     static {
         char c = '\uE000';
-        for (String kit : Gamemodes.ORDER) {
+        for (String kit : Gamemodes.CORE) {
             GLYPHS.put(kit, c++);
         }
         GLYPHS.put("Overall", c);
@@ -40,7 +40,7 @@ public final class IconGlyphs {
     private IconGlyphs() {
     }
 
-    /** The glyph character for {@code kit} (case-sensitive, matching {@link Gamemodes#ORDER} or "Overall"), or null if unknown. */
+    /** The glyph character for {@code kit} (case-sensitive, matching {@link Gamemodes#CORE} or "Overall"), or null if unknown. */
     public static Character get(String kit) {
         return GLYPHS.get(kit);
     }

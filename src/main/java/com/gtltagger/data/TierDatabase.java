@@ -96,4 +96,61 @@ public class TierDatabase {
         if (ign == null) return Map.of();
         return data.getOrDefault(ign, Map.of());
     }
+
+    /**
+     * Player-name suggestions for the search box: names starting with
+     * {@code query} first (alphabetical), then names merely containing
+     * it, up to {@code limit}. Case-insensitive. Reads the in-memory
+     * snapshot only, so it is cheap enough to call on every keystroke.
+     */
+    public static java.util.List<String> suggest(String query, int limit) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (query == null || query.isBlank() || limit <= 0) {
+            return out;
+        }
+        String q = query.trim().toLowerCase(java.util.Locale.ROOT);
+        Map<String, Map<String, TierEntry>> snapshot = data;
+        java.util.List<String> contains = new java.util.ArrayList<>();
+        for (String name : snapshot.keySet()) {
+            String lower = name.toLowerCase(java.util.Locale.ROOT);
+            if (lower.startsWith(q)) {
+                out.add(name);
+                if (out.size() >= limit) {
+                    return out;
+                }
+            } else if (contains.size() < limit && lower.contains(q)) {
+                contains.add(name);
+            }
+        }
+        for (String name : contains) {
+            if (out.size() >= limit) {
+                break;
+            }
+            out.add(name);
+        }
+        return out;
+    }
+
+    /** True once at least one successful refresh has populated the database. */
+    public static boolean hasData() {
+        return !data.isEmpty();
+    }
+
+    /** Number of players currently loaded. */
+    public static int playerCount() {
+        return data.size();
+    }
+
+    /** The canonical (API-cased) spelling of {@code ign}, or null if the player isn't loaded. */
+    public static String canonicalName(String ign) {
+        if (ign == null) return null;
+        Map<String, Map<String, TierEntry>> snapshot = data;
+        if (snapshot instanceof java.util.TreeMap<String, Map<String, TierEntry>> tree) {
+            java.util.Map.Entry<String, Map<String, TierEntry>> e = tree.ceilingEntry(ign);
+            if (e != null && e.getKey().equalsIgnoreCase(ign)) {
+                return e.getKey();
+            }
+        }
+        return null;
+    }
 }
