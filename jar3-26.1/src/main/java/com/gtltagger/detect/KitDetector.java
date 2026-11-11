@@ -1,0 +1,101 @@
+package com.gtltagger.detect;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.DisplaySlot;
+import net.minecraft.world.scores.Objective;
+import net.minecraft.network.chat.Component;
+import com.gtltagger.gamemode.Gamemodes;
+
+import java.util.Map;
+import java.util.regex.Pattern;
+
+/**
+ * Best-effort automatic kit/gamemode detection (spec section 6).
+ *
+ * There is no universal, protocol-level way to know "what kit am I
+ * in" on an arbitrary server — every KitPvP/practice server surfaces
+ * this differently. This implementation looks for a known gamemode
+ * name inside the sidebar scoreboard title and the TAB header/footer,
+ * which covers the common case of servers that print the current kit
+ * there (e.g. a sidebar line like "Kit: NethPot").
+ *
+ * If your server exposes the kit some other way (boss bar, action
+ * bar, a specific scoreboard line, etc.) adjust {@link #detect()}
+ * accordingly — the rest of the mod only depends on this returning
+ * a name from {@link Gamemodes#all()}, or null.
+ */
+public final class KitDetector {
+
+    /**
+     * One whole-word, case-insensitive pattern per known gamemode.
+     * Previously this used a raw {@code String.contains(...)} check,
+     * which false-positived on any text merely containing a kit name
+     * as a substring of an unrelated word - e.g. a line like
+     * "Teleporting..." or a server/rank name containing "pot" or
+     * "smp" would wrongly be detected as the Pot or SMP kit. Matching
+     * on a whole word instead fixes that.
+     */
+    private static final Map<String, Pattern> WORD_PATTERNS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Patterns are built lazily so gamemodes discovered from the API at runtime are detectable too. */
+    private static Pattern patternFor(String gamemode) {
+        return WORD_PATTERNS.computeIfAbsent(gamemode,
+                g -> Pattern.compile("(?<![\\p{L}\\p{N}])" + Pattern.quote(g) + "(?![\\p{L}\\p{N}])",
+                        Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
+    }
+
+    private KitDetector() {
+    }
+
+    /** Returns a detected gamemode name from {@link Gamemodes#all()}, or null if unknown/unavailable. */
+    public static String detect() {
+        Minecraft client = Minecraft.getInstance();
+        if (client.player == null || client.level == null) {
+            return null;
+        }
+
+        String fromSidebar = detectFromSidebar(client);
+        if (fromSidebar != null) {
+            return fromSidebar;
+        }
+
+        return detectFromTabHeaderFooter(client);
+    }
+
+    private static String detectFromSidebar(Minecraft client) {
+        Scoreboard scoreboard = client.level.getScoreboard();
+        Objective objective = scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR);
+        if (objective == null) {
+            return null;
+        }
+        return findKnownGamemode(objective.getDisplayName());
+    }
+
+    private static String detectFromTabHeaderFooter(Minecraft client) {
+        if (client.getConnection() == null) {
+            return null;
+        }
+        // The network handler does not expose getters for these —
+        // TabTextHolder is kept up to date by ClientPlayNetworkHandlerMixin.
+        Component header = TabTextHolder.getHeader();
+        Component footer = TabTextHolder.getFooter();
+        String fromHeader = header != null ? findKnownGamemode(header) : null;
+        if (fromHeader != null) {
+            return fromHeader;
+        }
+        return footer != null ? findKnownGamemode(footer) : null;
+    }
+
+    private static String findKnownGamemode(Component component) {
+        if (component == null) return null;
+        String plain = component.getString();
+        if (plain.isBlank()) return null;
+        for (String gamemode : Gamemodes.all()) {
+            if (patternFor(gamemode).matcher(plain).find()) {
+                return gamemode;
+            }
+        }
+        return null;
+    }
+}
