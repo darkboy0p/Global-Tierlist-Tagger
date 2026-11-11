@@ -21,6 +21,7 @@ import com.gtltagger.data.TierEntry;
 import com.gtltagger.detect.KitDetector;
 import com.gtltagger.gamemode.Gamemodes;
 import com.gtltagger.tag.TierTagGenerator;
+import com.gtltagger.telemetry.Telemetry;
 
 /**
  * Client entrypoint. GTLTagger is a client-only mod, so all logic
@@ -57,6 +58,7 @@ public class GTLTaggerClient implements ClientModInitializer {
     public void onInitializeClient() {
         TierDatabase.load();
         GTLTaggerConfig config = GTLTaggerConfig.get();
+        Telemetry.start(config); // no-op unless the player opted in
 
         registerKeyBindings();
         registerTickHandler(config);

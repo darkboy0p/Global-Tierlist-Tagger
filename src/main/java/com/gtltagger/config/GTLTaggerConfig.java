@@ -44,6 +44,13 @@ public class GTLTaggerConfig {
     public int hudX = 8;
     public int hudY = 8;
 
+    // --- Anonymous usage stats (opt-in, off by default; see telemetry/Telemetry.java) ---
+    public boolean telemetryEnabled = false;
+    /** Random id, created only after the player opts in and deleted when they opt out. */
+    public String telemetryInstallId = null;
+    /** UTC epoch-day of the last successful report (limits sending to once per day). */
+    public long telemetryLastSentDay = 0L;
+
     private static GTLTaggerConfig instance;
 
     public static GTLTaggerConfig get() {

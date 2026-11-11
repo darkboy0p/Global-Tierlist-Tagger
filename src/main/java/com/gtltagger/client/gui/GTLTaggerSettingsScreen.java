@@ -10,6 +10,7 @@ import com.gtltagger.config.DisplaySurface;
 import com.gtltagger.config.GTLTaggerConfig;
 import com.gtltagger.config.TierNameFormat;
 import com.gtltagger.gamemode.Gamemodes;
+import com.gtltagger.telemetry.Telemetry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +99,16 @@ public class GTLTaggerSettingsScreen extends Screen {
                 })
                 .build());
         y += ROW_HEIGHT;
+
+        // --- Anonymous usage stats (opt-in) ---
+        if (Telemetry.isAvailable()) {
+            this.addDrawableChild(CheckboxWidget.builder(Text.literal("Anonymous Usage Stats (opt-in)"), this.textRenderer)
+                    .pos(centerX - WIDGET_WIDTH / 2, y)
+                    .checked(config.telemetryEnabled)
+                    .callback((cb, checked) -> Telemetry.setEnabled(config, checked))
+                    .build());
+            y += ROW_HEIGHT;
+        }
 
         this.addDrawableChild(ButtonWidget.builder(Text.literal("Edit HUD Position"), button ->
                         this.client.setScreen(new HudPositionScreen(this, config)))
