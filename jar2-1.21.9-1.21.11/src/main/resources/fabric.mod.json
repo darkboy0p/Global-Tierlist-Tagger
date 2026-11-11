@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "gtltagger",
+  "version": "${version}",
+  "name": "GTLTagger",
+  "description": "Shows Global Tierlist (GTL) ranking website tiers in your TAB list, above player nametags, and on a customizable HUD. Supports every Global Tierlist gamemode, with player search (live suggestions), automatic kit detection, and a TierTag generator.",
+  "authors": [
+    "darkboyop"
+  ],
+  "contact": {
+    "ranking-website": "https://gtltierlist.vercel.app",
+    "discord": "https://discord.gg/E8FPMEHPtv"
+  },
+  "license": "All Rights Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.gtltagger.client.GTLTaggerClient"
+    ]
+  },
+  "mixins": [
+    "gtltagger.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": ">=1.21.9 <=1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
