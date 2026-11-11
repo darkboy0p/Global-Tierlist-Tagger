@@ -63,6 +63,28 @@ too but ship unbound — set them yourself if you want them.
 - `/gtltagger tag` — copy your current TierTag to the clipboard
 - `/gtltagger reload` — force-refresh tier data from Global Tierlist
 
+## 🧩 Which jar do I need?
+
+Minecraft changed its client APIs too much for one jar, so there is one jar
+per range (5 in total). GitHub Actions builds all of them:
+
+| Minecraft | Java | Jar (Actions artifact) | Source folder |
+|---|---|---|---|
+| 1.21.1 – 1.21.8 | 21 | `GTLTagger` | repo root |
+| 1.21.9 – 1.21.11 | 21 | `GTLTagger-1.21.9-1.21.11` | `jar2-1.21.9-1.21.11/` |
+| 26.1.x | 25 | `GTLTagger-26.1.x` | `jar3-26.1/` |
+| 26.2 | 25 | `GTLTagger-26.2` | `jar4-26.2/` |
+| 26.3 | 25 | `GTLTagger-26.3` | `jar5-26.3/` |
+
+Minecraft 26.x changes its client API in every minor release, so a new
+26.x release needs its own folder (copy the newest one and edit
+`src/main/java/com/gtltagger/client/compat/Mc.java`).
+
+**Status:** the root jar and the 1.21.9–1.21.11 jar are adapted from code that
+has built before; the 26.x projects are first drafts written from the published
+porting notes and have not been compiled yet - expect a first-run fix or two
+(usually in `client/compat/Mc.java`).
+
 ## 📦 Requirements
 
 - Minecraft **1.21.1 – 1.21.8**
@@ -85,6 +107,14 @@ source against 1.21.2 – 1.21.8:
 
 Local build (JDK 21): `gradle build` (jar in `build/libs/`; local builds
 compile against whatever `gradle.properties` says - the CI jar uses 1.21.1).
+
+## 🔒 Privacy
+
+GTLTagger has **opt-in, anonymous** usage stats (off by default; no username,
+UUID or server address is ever collected). See [PRIVACY.md](PRIVACY.md).
+To enable it in your own build, deploy `telemetry-server-example/` and set
+`Telemetry.ENDPOINT` in `com/gtltagger/telemetry/Telemetry.java` (in each
+jar's source folder); until then the feature is inert and its toggle is hidden.
 
 ## 🙌 Credits
 
