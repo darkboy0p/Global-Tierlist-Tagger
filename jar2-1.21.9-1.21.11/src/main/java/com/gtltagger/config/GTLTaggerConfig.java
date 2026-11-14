@@ -44,6 +44,11 @@ public class GTLTaggerConfig {
     public int hudX = 8;
     public int hudY = 8;
 
+    // --- Anonymous usage telemetry (used by telemetry/Telemetry.java) ---
+    public boolean telemetryEnabled = false;
+    public String telemetryInstallId = null;
+    public long telemetryLastSentDay = 0L;
+
     private static GTLTaggerConfig instance;
 
     public static GTLTaggerConfig get() {
