@@ -11,7 +11,6 @@ import com.gtltagger.client.compat.Mc;
 import com.gtltagger.config.GTLTaggerConfig;
 import com.gtltagger.config.TierNameFormat;
 import com.gtltagger.gamemode.Gamemodes;
-import com.gtltagger.telemetry.Telemetry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,12 +66,6 @@ public class GTLTaggerSettingsScreen extends Screen {
         addToggle(centerX - WIDGET_WIDTH / 2, y, WIDGET_WIDTH, "Enable HUD", config.hudEnabled,
                 on -> { config.hudEnabled = on; config.save(); });
         y += ROW_HEIGHT;
-
-        if (Telemetry.isAvailable()) {
-            addToggle(centerX - WIDGET_WIDTH / 2, y, WIDGET_WIDTH, "Anonymous Usage Stats", config.telemetryEnabled,
-                    on -> Telemetry.setEnabled(config, on));
-            y += ROW_HEIGHT;
-        }
 
         this.addRenderableWidget(Button.builder(Component.literal("Edit HUD Position"), button ->
                         Mc.openScreen(this.minecraft, new HudPositionScreen(this, config)))
