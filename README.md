@@ -110,11 +110,7 @@ compile against whatever `gradle.properties` says - the CI jar uses 1.21.1).
 
 ## 🔒 Privacy
 
-GTLTagger has **opt-in, anonymous** usage stats (off by default; no username,
-UUID or server address is ever collected). See [PRIVACY.md](PRIVACY.md).
-To enable it in your own build, deploy `telemetry-server-example/` and set
-`Telemetry.ENDPOINT` in `com/gtltagger/telemetry/Telemetry.java` (in each
-jar's source folder); until then the feature is inert and its toggle is hidden.
+GTLTagger has **no telemetry**. It only downloads the public Global Tierlist data and stores its settings locally.
 
 ## 🙌 Credits
 
