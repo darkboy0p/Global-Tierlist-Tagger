@@ -22,16 +22,26 @@ import java.util.Map;
  */
 public final class TierColors {
 
+    private static final Map<Integer, Integer> RGB_BY_TIER = Map.of(
+            1, 0xFF5555, // Red
+            2, 0xFF8000, // Orange
+            3, 0xFFD700, // Gold
+            4, 0x55FF55, // Green
+            5, 0x55FFFF  // Cyan
+    );
+
+    private static final int FALLBACK_RGB = 0xAAAAAA;
+
     private static final Map<Integer, TextColor> BY_TIER = Map.of(
-            1, TextColor.fromRgb(0xFF5555), // Red
-            2, TextColor.fromRgb(0xFF8000), // Orange
-            3, TextColor.fromRgb(0xFFD700), // Gold
-            4, TextColor.fromRgb(0x55FF55), // Green
-            5, TextColor.fromRgb(0x55FFFF)  // Cyan
+            1, TextColor.fromRgb(RGB_BY_TIER.get(1)),
+            2, TextColor.fromRgb(RGB_BY_TIER.get(2)),
+            3, TextColor.fromRgb(RGB_BY_TIER.get(3)),
+            4, TextColor.fromRgb(RGB_BY_TIER.get(4)),
+            5, TextColor.fromRgb(RGB_BY_TIER.get(5))
     );
 
     /** Neutral gray for a tier number outside 1-5 (e.g. -1/unparsed) - keeps untiered text visible without implying a rank. */
-    private static final TextColor FALLBACK = TextColor.fromRgb(0xAAAAAA);
+    private static final TextColor FALLBACK = TextColor.fromRgb(FALLBACK_RGB);
 
     private TierColors() {
     }
@@ -48,6 +58,6 @@ public final class TierColors {
 
     /** Same mapping as a packed RGB int, for APIs that want that instead of a {@link TextColor} (e.g. DrawContext.drawText). */
     public static int rgbForTierNumber(int tierNumber) {
-        return forTierNumber(tierNumber).getRgb();
+        return RGB_BY_TIER.getOrDefault(tierNumber, FALLBACK_RGB);
     }
 }
