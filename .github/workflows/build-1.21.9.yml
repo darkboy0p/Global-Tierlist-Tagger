@@ -1,0 +1,82 @@
+name: Build 1.21.9-1.21.11
+
+# Jar 2 of 3. Compiled against 1.21.9 (oldest supported); 1.21.10 and
+# 1.21.11 are compile-checked. Compiling is not running - launch the jar
+# once on 1.21.9 and once on 1.21.11 before releasing.
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "jar2-1.21.9-1.21.11/**", ".github/workflows/build-1.21.9.yml" ]
+    tags: [ "v*" ]
+  pull_request:
+    paths: [ "jar2-1.21.9-1.21.11/**" ]
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: jar2-1.21.9-1.21.11
+
+jobs:
+  build:
+    name: Build jar (compiled against 1.21.9)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 9.2.1
+      - name: Build
+        run: gradle build --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GTLTagger-1.21.9-1.21.11
+          path: jar2-1.21.9-1.21.11/build/libs/*.jar
+          if-no-files-found: error
+
+  compat:
+    name: Compile check on ${{ matrix.minecraft_version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { minecraft_version: "1.21.10", yarn: "1.21.10+build.1", api: "0.138.4+1.21.10" }
+          - { minecraft_version: "1.21.11", yarn: "1.21.11+build.4", api: "0.141.5+1.21.11" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 9.2.1
+      - name: Compile against ${{ matrix.minecraft_version }}
+        run: >
+          gradle compileJava --no-daemon --stacktrace
+          -Pminecraft_version=${{ matrix.minecraft_version }}
+          -Pyarn_mappings=${{ matrix.yarn }}
+          -Pfabric_version=${{ matrix.api }}
+
+  release:
+    needs: [ build, compat ]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: GTLTagger-1.21.9-1.21.11
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.jar
+          generate_release_notes: true

@@ -1,0 +1,54 @@
+name: Bundle all versions into one jar
+
+# Run this by hand (Actions -> "Bundle all versions into one jar" -> Run workflow) AFTER the
+# three build workflows have gone green on the same commit. It downloads the newest successful
+# jars from each of them and packs them into a single jar with tools/bundle.py.
+#
+# Untested in-game: Fabric loads nested jar-in-jar mods only when their own `depends` match
+# (Minecraft version, Java version). If a launcher/loader ever rejects the bundle, keep
+# shipping the individual jars from the three build workflows instead.
+on:
+  workflow_dispatch:
+    inputs:
+      attach_to_tag:
+        description: "Optional: existing release tag (e.g. v1.1.0) to attach the bundle to"
+        required: false
+        default: ""
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the newest successful jars
+        run: |
+          set -euo pipefail
+          mkdir -p jars
+          fetch() { # workflow file, artifact-name-pattern
+            id=$(gh run list --workflow="$1" --branch="${GITHUB_REF_NAME}" --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
+            [ -n "$id" ] || { echo "::error::no successful run of $1 on ${GITHUB_REF_NAME}"; exit 1; }
+            gh run download "$id" --pattern "$2" --dir "jars/$1"
+          }
+          fetch build.yml        "GTLTagger"
+          fetch build-1.21.9.yml "GTLTagger-1.21.9-1.21.11"
+          fetch build-26.yml     "GTLTagger-26*"
+          find jars -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar' | sort
+      - name: Bundle
+        run: |
+          set -euo pipefail
+          mapfile -t JARS < <(find jars -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar' | sort)
+          [ "${#JARS[@]}" -ge 5 ] || { echo "::error::expected 5 jars, found ${#JARS[@]}"; exit 1; }
+          python3 tools/bundle.py GTLTagger-all-versions.jar "${JARS[@]}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GTLTagger-all-versions
+          path: GTLTagger-all-versions.jar
+      - name: Attach to release
+        if: ${{ inputs.attach_to_tag != '' }}
+        run: gh release upload "${{ inputs.attach_to_tag }}" GTLTagger-all-versions.jar --clobber

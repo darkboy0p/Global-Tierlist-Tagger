@@ -1,4 +1,4 @@
-name: Build
+name: Build 1.21.1-1.21.8
 
 # One jar for every supported Minecraft 1.21.x version.
 #
@@ -11,8 +11,10 @@ name: Build
 on:
   push:
     branches: [ "main" ]
+    paths-ignore: [ "jar2-1.21.9-1.21.11/**", "jar3-26.1/**", "jar4-26.2/**", "jar5-26.3/**" ]
     tags: [ "v*" ]
   pull_request:
+    paths-ignore: [ "jar2-1.21.9-1.21.11/**", "jar3-26.1/**", "jar4-26.2/**", "jar5-26.3/**" ]
   workflow_dispatch: {}
 
 jobs:

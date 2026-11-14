@@ -1,0 +1,81 @@
+name: Build 26.1 / 26.2 / 26.3
+
+# Jars 3-5 of 5. Minecraft 26.x is unobfuscated and its client API changes
+# in every minor release (26.1 -> 26.2 -> 26.3), so each minor gets its own
+# jar built from its own folder. Loader / Fabric API versions are looked up
+# per Minecraft version so you never have to edit them here.
+#
+# The 26.2 and 26.3 projects are first drafts written from the published
+# porting notes: expect a compile error or two on the first run - paste the
+# failing job's log and the fix is normally one line in
+# src/main/java/com/gtltagger/client/compat/Mc.java.
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "jar3-26.1/**", "jar4-26.2/**", "jar5-26.3/**", ".github/workflows/build-26.yml" ]
+    tags: [ "v*" ]
+  pull_request:
+    paths: [ "jar3-26.1/**", "jar4-26.2/**", "jar5-26.3/**" ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: "26.1.x", dir: "jar3-26.1", mc: "26.1.2" }
+          - { name: "26.2",   dir: "jar4-26.2", mc: "26.2" }
+          - { name: "26.3",   dir: "jar5-26.3", mc: "26.3" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: current
+      - name: Resolve Fabric versions for ${{ matrix.mc }}
+        id: fabric
+        run: |
+          set -euo pipefail
+          MC="${{ matrix.mc }}"
+          LOADER=$(curl -sf "https://meta.fabricmc.net/v2/versions/loader/${MC}" | jq -r '.[0].loader.version // empty')
+          API_JSON=$(curl -sf "https://api.modrinth.com/v2/project/fabric-api/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%22${MC}%22%5D")
+          API=$(echo "$API_JSON" | jq -r '([.[] | select(.version_type=="release")][0] // .[0]).version_number // empty')
+          [ -n "$LOADER" ] && [ -n "$API" ] || { echo "::error::could not resolve Fabric loader / API for ${MC}"; exit 1; }
+          echo "loader=$LOADER" >> "$GITHUB_OUTPUT"
+          echo "api=$API" >> "$GITHUB_OUTPUT"
+          echo "Using loader $LOADER and Fabric API $API"
+      - name: Build
+        working-directory: ${{ matrix.dir }}
+        run: >
+          gradle build --no-daemon --stacktrace
+          -Pminecraft_version=${{ matrix.mc }}
+          -Ploader_version=${{ steps.fabric.outputs.loader }}
+          -Pfabric_version=${{ steps.fabric.outputs.api }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GTLTagger-${{ matrix.name }}
+          path: ${{ matrix.dir }}/build/libs/*.jar
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: GTLTagger-26*
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.jar
+          generate_release_notes: true
